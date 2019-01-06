@@ -26,7 +26,8 @@ class Robot : public frc::TimedRobot {
   void TestPeriodic() override;
 
 
-  frc::DigitalInput* colorSensor = new frc::DigitalInput(dio0);
+  frc::DigitalInput* colorSensor;
+  frc::Timer* timer;
 
  private:
   frc::SendableChooser<std::string> m_chooser;

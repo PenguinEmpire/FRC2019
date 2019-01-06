@@ -17,7 +17,9 @@ void Robot::RobotInit() {
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
 
-  frc::DigitalInput* colorSensor = new frc::DigitalInput(dio0);
+  colorSensor = new frc::DigitalInput(dio0);
+  timer = new frc::Timer();
+  timer->Start();
 
 }
 
@@ -29,7 +31,10 @@ void Robot::RobotInit() {
  * <p> This runs after the mode specific periodic functions, but before
  * LiveWindow and SmartDashboard integrated updating.
  */
-void Robot::RobotPeriodic() {}
+void Robot::RobotPeriodic() {
+  frc::SmartDashboard::PutBoolean("color sensor", colorSensor->Get());
+  frc::SmartDashboard::PutNumber("timer", timer->Get());
+}
 
 /**
  * This autonomous (along with the chooser code above) shows how to select
