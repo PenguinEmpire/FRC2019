@@ -12,9 +12,16 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 
 void Robot::RobotInit() {
+  // Auto Mode Chooser
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+
+  //Object Initialization
+  liftTop = new frc::DigitalInput(dio0);
+  liftMid = new frc::DigitalInput(dio1);
+  liftBottom = new frc::DigitalInput(dio2);
+
 }
 
 /**

@@ -11,9 +11,20 @@
 
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
+#include <WPILib.h>
+
+#include <penguinports.h>
 
 class Robot : public frc::TimedRobot {
- public:
+ public: 
+ //Lift stage mag sensors
+  frc::DigitalInput* liftBottom;
+  frc::DigitalInput* liftMid;
+  frc::DigitalInput* liftTop;
+
+//Motor controllers
+  //TODO - Add TalonSRX instances
+
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;
