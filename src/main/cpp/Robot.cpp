@@ -22,7 +22,16 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
 
-  srx.Set(ControlMode::PercentOutput, 0);
+  // srx.Set(ControlMode::PercentOutput, 0);
+
+  // *joy1 = frc::Joystick();
+  // *joy2 = frc::Joystick(usb1);
+
+/*   l1 = pwm0, //PDP0
+  l1.
+	l2(pwm1), //PDP1
+	r1(pwm2), //PDP14
+  r2(pwm3), //PDP15 */
 
 }
 
@@ -71,10 +80,16 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
-  bool gotTopButton = joy1.GetButton(frc::Joystick::ButtonType::kTopButton);
-  bool gotTriggerButton = joy1.GetButton(frc::Joystick::ButtonType::kTriggerButton);
+  bool gotTopButton = joy1.GetTop();//frc::Joystick::ButtonType::kTopButton);
+  bool gotTriggerButton = joy1.GetTrigger();//frc::Joystick::ButtonType::kTriggerButton);
   frc::SmartDashboard::PutBoolean("button", gotTopButton);
   frc::SmartDashboard::PutBoolean("button", gotTriggerButton);
+
+  l1.Set(ControlMode::PercentOutput, joy1.GetRawAxis(1));
+  l2.Set(ControlMode::PercentOutput, joy1.GetRawAxis(1));
+
+  r1.Set(ControlMode::PercentOutput, joy2.GetRawAxis(1));
+  r2.Set(ControlMode::PercentOutput, joy2.GetRawAxis(1));
 }
 
 void Robot::TestPeriodic() {}

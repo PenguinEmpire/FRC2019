@@ -1,4 +1,3 @@
-#include "WPILib.h"
 #include "PenguinJoystick.h"
 
 PenguinJoystick::PenguinJoystick() {

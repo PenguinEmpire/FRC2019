@@ -1,6 +1,6 @@
 #pragma once
 
-#include "WPILib.h"
+#include "frc/WPILib.h"
 
 const int maxButtons = 12;
 
