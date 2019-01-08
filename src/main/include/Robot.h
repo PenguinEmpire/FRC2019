@@ -16,7 +16,7 @@
 #include "penguinports.h"
 #include "PenguinJoystick.h"
 
-#include <ctre/Phoenix.h>
+#include "ctre/Phoenix.h"
 
 class Robot : public frc::TimedRobot {
  public:
