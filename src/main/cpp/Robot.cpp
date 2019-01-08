@@ -11,6 +11,8 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 
+
+
 void Robot::RobotInit() {
   // Auto Mode Chooser
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
@@ -21,18 +23,6 @@ void Robot::RobotInit() {
   liftTop = new frc::DigitalInput(dio0);
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
-
-  // srx.Set(ControlMode::PercentOutput, 0);
-
-  // *joy1 = frc::Joystick();
-  // *joy2 = frc::Joystick(usb1);
-
-/*   l1 = pwm0, //PDP0
-  l1.
-	l2(pwm1), //PDP1
-	r1(pwm2), //PDP14
-  r2(pwm3), //PDP15 */
-
 }
 
 /**
@@ -93,6 +83,46 @@ void Robot::TeleopPeriodic() {
 }
 
 void Robot::TestPeriodic() {}
+
+void Robot::ShiftGears(Robot::Direction dir) {
+  frc::DoubleSolenoid::Value state;
+	if (dir == Robot::Direction::up) {
+		state = frc::DoubleSolenoid::kForward;
+	} else {
+		state = frc::DoubleSolenoid::kReverse;
+	}
+
+  driveGearboxes.Set(state);
+}
+
+void Robot::ShiftGears(bool upBtn, bool downBtn) {
+  if (upBtn) {
+		ShiftGears(up);
+	}
+	if (downBtn) {
+		ShiftGears(down);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }

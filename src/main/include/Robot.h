@@ -19,14 +19,19 @@
 #include <ctre/Phoenix.h>
 
 class Robot : public frc::TimedRobot {
- public: 
+ public:
+
+ enum Direction{
+    up, down, left, right, backward, forward
+  };
+
+
  //Lift stage mag sensors
   frc::DigitalInput* liftBottom;
   frc::DigitalInput* liftMid;
   frc::DigitalInput* liftTop;
 
 //Motor controllers
-  //TODO - Add TalonSRX instances
   TalonSRX srx = {0};
 
   PenguinJoystick p_joy1;
@@ -39,6 +44,9 @@ class Robot : public frc::TimedRobot {
   TalonSRX r1{2};
   TalonSRX r2{3}; // Drive motor controllers
 
+  frc::Compressor compressor{pcm0};
+  frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
+
 
   void RobotInit() override;
   void RobotPeriodic() override;
@@ -47,6 +55,12 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override;
+
+  void ShiftGears(Robot::Direction dir);
+  void ShiftGears(bool upBtn, bool downBtn);
+
+
+  
 
  private:
   frc::SendableChooser<std::string> m_chooser;

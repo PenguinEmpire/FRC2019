@@ -1,7 +1,6 @@
 #include "PenguinJoystick.h"
 
-PenguinJoystick::PenguinJoystick() {
-}
+PenguinJoystick::PenguinJoystick() {}
 
 PenguinJoystick::~PenguinJoystick() { // Delete all pointers in button array
 	if( m_Joystick != NULL) {
