@@ -70,7 +70,12 @@ void Robot::AutonomousPeriodic() {
 
 void Robot::TeleopInit() {}
 
-void Robot::TeleopPeriodic() {}
+void Robot::TeleopPeriodic() {
+  bool gotTopButton = joy1.GetButton(frc::Joystick::ButtonType::kTopButton);
+  bool gotTriggerButton = joy1.GetButton(frc::Joystick::ButtonType::kTriggerButton);
+  frc::SmartDashboard::PutBoolean("button", gotTopButton);
+  frc::SmartDashboard::PutBoolean("button", gotTriggerButton);
+}
 
 void Robot::TestPeriodic() {}
 

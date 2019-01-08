@@ -13,9 +13,10 @@
 #include <frc/smartdashboard/SendableChooser.h>
 #include <WPILib.h>
 
-#include <penguinports.h>
+#include "penguinports.h"
+#include "PenguinJoystick.h"
 
-#include "ctre/Phoenix.h"
+#include <ctre/Phoenix.h>
 
 class Robot : public frc::TimedRobot {
  public: 
@@ -27,6 +28,11 @@ class Robot : public frc::TimedRobot {
 //Motor controllers
   //TODO - Add TalonSRX instances
   TalonSRX srx = {0};
+
+  PenguinJoystick p_joy1;
+
+  frc::Joystick joy1;
+
 
   void RobotInit() override;
   void RobotPeriodic() override;
