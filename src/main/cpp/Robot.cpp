@@ -22,6 +22,8 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
 
+  srx.Set(ControlMode::PercentOutput, 0);
+
 }
 
 /**

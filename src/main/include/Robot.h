@@ -15,6 +15,8 @@
 
 #include <penguinports.h>
 
+#include "ctre/Phoenix.h"
+
 class Robot : public frc::TimedRobot {
  public: 
  //Lift stage mag sensors
@@ -24,6 +26,7 @@ class Robot : public frc::TimedRobot {
 
 //Motor controllers
   //TODO - Add TalonSRX instances
+  TalonSRX srx = {0};
 
   void RobotInit() override;
   void RobotPeriodic() override;
