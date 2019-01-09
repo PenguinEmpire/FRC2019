@@ -23,6 +23,9 @@ void Robot::RobotInit() {
   liftTop = new frc::DigitalInput(dio0);
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
+
+  
+  compressor.SetClosedLoopControl(true);
 }
 
 /**
