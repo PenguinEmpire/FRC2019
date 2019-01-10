@@ -1,3 +1,4 @@
+
 /*----------------------------------------------------------------------------*/
 /* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
@@ -18,6 +19,8 @@
 
 #include "ctre/Phoenix.h"
 
+typedef frc::DigitalInput DIO;
+
 class Robot : public frc::TimedRobot {
  public:
 
@@ -27,12 +30,12 @@ class Robot : public frc::TimedRobot {
 
 
  //Lift stage mag sensors
-  frc::DigitalInput* liftBottom;
-  frc::DigitalInput* liftMid;
-  frc::DigitalInput* liftTop;
+  DIO* liftBottom;
+  DIO* liftMid;
+  DIO* liftTop;
 
 //Motor controllers
-  TalonSRX srx = {0};
+  // TalonSRX srx = {0};
 
   PenguinJoystick p_joy1;
 
@@ -44,8 +47,14 @@ class Robot : public frc::TimedRobot {
   TalonSRX r1{2};
   TalonSRX r2{3}; // Drive motor controllers
 
+  // TalonSRX test{0};
+
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
+
+  DIO* lineSensorLeft;
+  DIO* lineSensorMid;
+  DIO* lineSensorRight;
 
 
   void RobotInit() override;
@@ -58,6 +67,11 @@ class Robot : public frc::TimedRobot {
 
   void ShiftGears(Robot::Direction dir);
   void ShiftGears(bool upBtn, bool downBtn);
+
+
+
+  // Utils:
+  double calculateJoystickDampening(double rawAxisValue);
 
 
   

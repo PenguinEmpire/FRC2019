@@ -26,6 +26,18 @@ void Robot::RobotInit() {
 
   
   compressor.SetClosedLoopControl(true);
+
+
+/*   l1.SetInverted(false); //check
+  l2.SetInverted(false); //check
+  r1.SetInverted(true); 
+  r2.SetInverted(true);
+ */
+
+  l1.SetInverted(true); //check
+  l2.SetInverted(true); //check
+  r1.SetInverted(false); 
+  r2.SetInverted(false);
 }
 
 /**
@@ -78,11 +90,21 @@ void Robot::TeleopPeriodic() {
   frc::SmartDashboard::PutBoolean("button", gotTopButton);
   frc::SmartDashboard::PutBoolean("button", gotTriggerButton);
 
-  l1.Set(ControlMode::PercentOutput, joy1.GetRawAxis(1));
-  l2.Set(ControlMode::PercentOutput, joy1.GetRawAxis(1));
+  double mult = 1.0;
 
-  r1.Set(ControlMode::PercentOutput, joy2.GetRawAxis(1));
-  r2.Set(ControlMode::PercentOutput, joy2.GetRawAxis(1));
+  l1.Set(ControlMode::PercentOutput, mult*joy1.GetRawAxis(1));
+  l2.Follow(l1); // Set(ControlMode::PercentOutput, joy1.GetRawAxis(1));
+
+  frc::SmartDashboard::PutNumber("rawAxis0", joy2.GetRawAxis(0));
+  frc::SmartDashboard::PutNumber("rawAxis1", joy2.GetRawAxis(1));
+  frc::SmartDashboard::PutNumber("rawAxis2", joy2.GetRawAxis(2));
+  frc::SmartDashboard::PutNumber("rawAxis3", joy2.GetRawAxis(3));
+  frc::SmartDashboard::PutNumber("rawAxis4", joy2.GetRawAxis(4));
+  frc::SmartDashboard::PutNumber("rawAxis5", joy2.GetRawAxis(5));
+
+
+  r1.Set(ControlMode::PercentOutput, mult*joy2.GetRawAxis(1));
+  r2.Follow(r1); // Set(ControlMode::PercentOutput, joy2.GetRawAxis(1));
 }
 
 void Robot::TestPeriodic() {}
