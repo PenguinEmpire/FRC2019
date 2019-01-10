@@ -32,3 +32,17 @@ const int pwm7 = 7;
 const int usb0 = 0; 
 const int usb1 = 1;
 const int usb2 = 2;
+
+const int can0 = 0;
+const int can1 = 1;
+const int can2 = 2;
+const int can3 = 3;
+const int can4 = 4;
+const int can5 = 5;
+const int can6 = 6;
+const int can7 = 7;
+
+constexpr int LEFT_1_CAN_ADDRESS = can0;
+constexpr int LEFT_2_CAN_ADDRESS = can1;
+constexpr int RIGHT_1_CAN_ADDRESS = can2;
+constexpr int RIGHT_2_CAN_ADDRESS = can3;

@@ -11,6 +11,9 @@
     ".classpath": true,
     ".project": true
   },
-  "C_Cpp.default.configurationProvider": "vscode-wpilib",
-  "wpilib.online": true
+  "wpilib.online": true,
+  "files.associations": {
+    "*.inc": "cpp",
+    "string": "cpp"
+  }
 }

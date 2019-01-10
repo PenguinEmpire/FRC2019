@@ -14,7 +14,7 @@
 #include <frc/smartdashboard/SendableChooser.h>
 #include <frc/WPILib.h>
 
-#include "penguinports.h"
+#include "PenguinConstants.h"
 #include "PenguinJoystick.h"
 
 #include "ctre/Phoenix.h"
@@ -24,38 +24,38 @@ typedef frc::DigitalInput DIO;
 class Robot : public frc::TimedRobot {
  public:
 
- enum Direction{
+  enum Direction{
     up, down, left, right, backward, forward
   };
 
+  // # OFFBOARD #
+  PenguinJoystick p_joy1;
 
- //Lift stage mag sensors
+  frc::Joystick leftJoystick = frc::Joystick(usb0);
+  frc::Joystick rightJoystick = frc::Joystick(usb1);
+
+  // # ONBOARD #
+  // SENSORS
+  // Lift stage mag sensors
   DIO* liftBottom;
   DIO* liftMid;
   DIO* liftTop;
-
-//Motor controllers
-  // TalonSRX srx = {0};
-
-  PenguinJoystick p_joy1;
-
-  frc::Joystick joy1 = frc::Joystick(usb0);
-  frc::Joystick joy2 = frc::Joystick(usb1);
-
-  TalonSRX l1{0};
-  TalonSRX l2{1};
-  TalonSRX r1{2};
-  TalonSRX r2{3}; // Drive motor controllers
-
-  // TalonSRX test{0};
-
-  frc::Compressor compressor{pcm0};
-  frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-
+  
+  // Line following sensors
   DIO* lineSensorLeft;
   DIO* lineSensorMid;
   DIO* lineSensorRight;
 
+  // MOTOR CONTROLLERS
+  // Talons
+  TalonSRX l1{LEFT_1_CAN_ADDRESS};
+  TalonSRX l2{LEFT_2_CAN_ADDRESS};
+  TalonSRX r1{RIGHT_1_CAN_ADDRESS};
+  TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
+
+  // OTHER
+  frc::Compressor compressor{pcm0};
+  frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
 
   void RobotInit() override;
   void RobotPeriodic() override;
@@ -68,10 +68,17 @@ class Robot : public frc::TimedRobot {
   void ShiftGears(Robot::Direction dir);
   void ShiftGears(bool upBtn, bool downBtn);
 
+  void DriveLeft(double amount);
+  void DriveRight(double amount);
+  void DriveBoth(double amount);
+  void Move(); //TODO: better name
+
 
 
   // Utils:
   double calculateJoystickDampening(double rawAxisValue);
+
+  void Testing();
 
 
   

@@ -11,33 +11,31 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 
-
-
 void Robot::RobotInit() {
   // Auto Mode Chooser
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
+  //-----------------------------------------------------------------------------------
+
   //Object Initialization
   liftTop = new frc::DigitalInput(dio0);
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
 
-  
   compressor.SetClosedLoopControl(true);
-
-
-/*   l1.SetInverted(false); //check
-  l2.SetInverted(false); //check
-  r1.SetInverted(true); 
-  r2.SetInverted(true);
- */
 
   l1.SetInverted(true); //check
   l2.SetInverted(true); //check
   r1.SetInverted(false); 
   r2.SetInverted(false);
+
+  l1.SetNeutralMode(NeutralMode::Coast);
+  l2.SetNeutralMode(NeutralMode::Coast);
+  r1.SetNeutralMode(NeutralMode::Coast);
+  r2.SetNeutralMode(NeutralMode::Coast);
+
 }
 
 /**
@@ -85,26 +83,17 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
-  bool gotTopButton = joy1.GetTop();//frc::Joystick::ButtonType::kTopButton);
-  bool gotTriggerButton = joy1.GetTrigger();//frc::Joystick::ButtonType::kTriggerButton);
-  frc::SmartDashboard::PutBoolean("button", gotTopButton);
-  frc::SmartDashboard::PutBoolean("button", gotTriggerButton);
+  Testing();
 
-  double mult = 1.0;
+  Move();
 
-  l1.Set(ControlMode::PercentOutput, mult*joy1.GetRawAxis(1));
-  l2.Follow(l1); // Set(ControlMode::PercentOutput, joy1.GetRawAxis(1));
-
-  frc::SmartDashboard::PutNumber("rawAxis0", joy2.GetRawAxis(0));
-  frc::SmartDashboard::PutNumber("rawAxis1", joy2.GetRawAxis(1));
-  frc::SmartDashboard::PutNumber("rawAxis2", joy2.GetRawAxis(2));
-  frc::SmartDashboard::PutNumber("rawAxis3", joy2.GetRawAxis(3));
-  frc::SmartDashboard::PutNumber("rawAxis4", joy2.GetRawAxis(4));
-  frc::SmartDashboard::PutNumber("rawAxis5", joy2.GetRawAxis(5));
-
-
-  r1.Set(ControlMode::PercentOutput, mult*joy2.GetRawAxis(1));
-  r2.Follow(r1); // Set(ControlMode::PercentOutput, joy2.GetRawAxis(1));
+/* frc::SmartDashboard::PutNumber("rawAxis0", rightJoystick.GetRawAxis(0));
+  frc::SmartDashboard::PutNumber("rawAxis1", rightJoystick.GetRawAxis(1));
+  frc::SmartDashboard::PutNumber("rawAxis2", rightJoystick.GetRawAxis(2));
+  frc::SmartDashboard::PutNumber("rawAxis3", rightJoystick.GetRawAxis(3));
+  frc::SmartDashboard::PutNumber("rawAxis4", rightJoystick.GetRawAxis(4));
+  frc::SmartDashboard::PutNumber("rawAxis5", rightJoystick.GetRawAxis(5)); 
+*/
 }
 
 void Robot::TestPeriodic() {}
@@ -120,6 +109,34 @@ void Robot::ShiftGears(Robot::Direction dir) {
   driveGearboxes.Set(state);
 }
 
+//--------------------------
+
+void Robot::DriveLeft(double amount) {
+  l1.Set(ControlMode::PercentOutput, amount);
+  l2.Follow(l1);
+}
+void Robot::DriveRight(double amount) {
+  r1.Set(ControlMode::PercentOutput, amount);
+  r2.Follow(r1);
+}
+void Robot::DriveBoth(double amount) {
+  DriveLeft(amount);
+  DriveRight(amount);
+}
+void Robot::Move() {
+  double left = leftJoystick.GetRawAxis(1);
+  double right = rightJoystick.GetRawAxis(1);
+  double both;
+
+  if(fabs(left - right) < 0.1) {
+    both = (left + right) / 2;
+    DriveBoth(both);
+  } else {
+    DriveLeft(left);
+    DriveRight(right);
+  }
+}
+
 void Robot::ShiftGears(bool upBtn, bool downBtn) {
   if (upBtn) {
 		ShiftGears(up);
@@ -129,23 +146,22 @@ void Robot::ShiftGears(bool upBtn, bool downBtn) {
   }
 }
 
+double Robot::calculateJoystickDampening(double rawAxisValue) {
+  if(fabs(rawAxisValue) <= 0.3) {
+      return 0.0;
+  } else if(fabs(rawAxisValue) < 0.7) {
+      return 1.0;
+  } else {
+      return 0.0;
+  }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void Robot::Testing() {
+  bool gotTopButton = leftJoystick.GetTop(); //frc::Joystick::ButtonType::kTopButton);
+  bool gotTriggerButton = leftJoystick.GetTrigger(); //frc::Joystick::ButtonType::kTriggerButton);
+  frc::SmartDashboard::PutBoolean("topButtonLeft", gotTopButton);
+  frc::SmartDashboard::PutBoolean("TriggerButtonLeft", gotTriggerButton);
+}
 
 
 
