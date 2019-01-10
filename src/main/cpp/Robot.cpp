@@ -26,16 +26,7 @@ void Robot::RobotInit() {
 
   compressor.SetClosedLoopControl(true);
 
-  l1.SetInverted(true); //check
-  l2.SetInverted(true); //check
-  r1.SetInverted(false); 
-  r2.SetInverted(false);
-
-  l1.SetNeutralMode(NeutralMode::Coast);
-  l2.SetNeutralMode(NeutralMode::Coast);
-  r1.SetNeutralMode(NeutralMode::Coast);
-  r2.SetNeutralMode(NeutralMode::Coast);
-
+  TalonInit();
 }
 
 /**
@@ -70,6 +61,10 @@ void Robot::AutonomousInit() {
   } else {
     // Default Auto goes here
   }
+
+//-----------------------------
+
+
 }
 
 void Robot::AutonomousPeriodic() {
@@ -98,18 +93,19 @@ void Robot::TeleopPeriodic() {
 
 void Robot::TestPeriodic() {}
 
-void Robot::ShiftGears(Robot::Direction dir) {
-  frc::DoubleSolenoid::Value state;
-	if (dir == Robot::Direction::up) {
-		state = frc::DoubleSolenoid::kForward;
-	} else {
-		state = frc::DoubleSolenoid::kReverse;
-	}
-
-  driveGearboxes.Set(state);
-}
-
 //--------------------------
+
+void Robot::TalonInit() {
+  l1.SetInverted(true);
+  l2.SetInverted(true);
+  r1.SetInverted(false); 
+  r2.SetInverted(false);
+
+  l1.SetNeutralMode(NeutralMode::Coast);
+  l2.SetNeutralMode(NeutralMode::Coast);
+  r1.SetNeutralMode(NeutralMode::Coast);
+  r2.SetNeutralMode(NeutralMode::Coast);
+}
 
 void Robot::DriveLeft(double amount) {
   l1.Set(ControlMode::PercentOutput, amount);
@@ -130,11 +126,22 @@ void Robot::Move() {
 
   if(fabs(left - right) < 0.1) {
     both = (left + right) / 2;
-    DriveBoth(both);
+    DriveBoth (calculateDampenedJoystick(both ));
   } else {
-    DriveLeft(left);
-    DriveRight(right);
+    DriveLeft (calculateDampenedJoystick(left ));
+    DriveRight(calculateDampenedJoystick(right));
   }
+}
+
+void Robot::ShiftGears(Robot::Direction dir) {
+  frc::DoubleSolenoid::Value state;
+	if (dir == Robot::Direction::up) {
+		state = frc::DoubleSolenoid::kForward;
+	} else {
+		state = frc::DoubleSolenoid::kReverse;
+	}
+
+  driveGearboxes.Set(state);
 }
 
 void Robot::ShiftGears(bool upBtn, bool downBtn) {
@@ -146,14 +153,20 @@ void Robot::ShiftGears(bool upBtn, bool downBtn) {
   }
 }
 
-double Robot::calculateJoystickDampening(double rawAxisValue) {
+void Robot::HandleJoysticks() {
+  ShiftGears(leftJoystick.GetRawButton(6), leftJoystick.GetRawButton(4));
+}
+
+double Robot::calculateDampenedJoystick(double rawAxisValue) {
+  double dampening;
   if(fabs(rawAxisValue) <= 0.3) {
-      return 0.0;
+      dampening = 0.0;
   } else if(fabs(rawAxisValue) < 0.7) {
-      return 1.0;
+      dampening = 1.0;
   } else {
-      return 0.0;
+      dampening = 0.9;
   }
+  return dampening * rawAxisValue;
 }
 
 void Robot::Testing() {

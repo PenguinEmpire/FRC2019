@@ -57,6 +57,8 @@ class Robot : public frc::TimedRobot {
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
 
+  frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
+
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;
@@ -65,8 +67,12 @@ class Robot : public frc::TimedRobot {
   void TeleopPeriodic() override;
   void TestPeriodic() override;
 
+  void TalonInit();
+
   void ShiftGears(Robot::Direction dir);
   void ShiftGears(bool upBtn, bool downBtn);
+
+  void HandleJoysticks();
 
   void DriveLeft(double amount);
   void DriveRight(double amount);
@@ -76,7 +82,7 @@ class Robot : public frc::TimedRobot {
 
 
   // Utils:
-  double calculateJoystickDampening(double rawAxisValue);
+  double calculateDampenedJoystick(double rawAxisValue);
 
   void Testing();
 
