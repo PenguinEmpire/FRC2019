@@ -105,23 +105,20 @@ void Robot::TalonInit() {
   r1.SetInverted(false); 
   r2.SetInverted(false);
 
+  l2.Follow(l1);
+  r2.Follow(l2);
 
   l1.SetNeutralMode(NeutralMode::Brake);
   // l2.SetNeutralMode(NeutralMode::Coast);
   r1.SetNeutralMode(NeutralMode::Brake);
-  // r2.SetNeutralMode(NeutralMode::Coast);
-
-  l2.Follow(l1);
-  r2.Follow(l2);
+  // r2.SetNeutralMode(NeutralMode::Coast); 
 }
 
 void Robot::DriveLeft(double amount) {
   l1.Set(ControlMode::PercentOutput, amount);
-  // l2.Follow(l1);
 }
 void Robot::DriveRight(double amount) {
   r1.Set(ControlMode::PercentOutput, amount);
-  // r2.Follow(r1);
 }
 void Robot::DriveBoth(double amount) {
   DriveLeft(amount);

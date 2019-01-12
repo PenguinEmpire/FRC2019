@@ -18,13 +18,14 @@
 #include "PenguinJoystick.h"
 
 #include "ctre/Phoenix.h"
+#include "AHRS.h"
 
 typedef frc::DigitalInput DIO;
 
 class Robot : public frc::TimedRobot {
  public:
 
-  enum Direction{
+  enum Direction {
     up, down, left, right, backward, forward
   };
 
@@ -57,7 +58,7 @@ class Robot : public frc::TimedRobot {
 
   // OTHER
 
-  // navx::AHRS* ahrs = new A
+  AHRS* ahrs = new AHRS(I2C::Port::kMXP);
 
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
