@@ -25,6 +25,7 @@ void Robot::RobotInit() {
   liftBottom = new frc::DigitalInput(dio2);
 
   compressor.SetClosedLoopControl(true);
+  ShiftGears(currentGear);
 
   TalonInit();
 }
@@ -80,6 +81,7 @@ void Robot::TeleopInit() {}
 void Robot::TeleopPeriodic() {
   Testing();
 
+  HandleJoysticks();
   Move();
 
 /* frc::SmartDashboard::PutNumber("rawAxis0", rightJoystick.GetRawAxis(0));
@@ -91,7 +93,9 @@ void Robot::TeleopPeriodic() {
 */
 }
 
-void Robot::TestPeriodic() {}
+void Robot::TestPeriodic() {
+  Testing();
+}
 
 //--------------------------
 
@@ -101,19 +105,23 @@ void Robot::TalonInit() {
   r1.SetInverted(false); 
   r2.SetInverted(false);
 
-  l1.SetNeutralMode(NeutralMode::Coast);
-  l2.SetNeutralMode(NeutralMode::Coast);
-  r1.SetNeutralMode(NeutralMode::Coast);
-  r2.SetNeutralMode(NeutralMode::Coast);
+
+  l1.SetNeutralMode(NeutralMode::Brake);
+  // l2.SetNeutralMode(NeutralMode::Coast);
+  r1.SetNeutralMode(NeutralMode::Brake);
+  // r2.SetNeutralMode(NeutralMode::Coast);
+
+  l2.Follow(l1);
+  r2.Follow(l2);
 }
 
 void Robot::DriveLeft(double amount) {
   l1.Set(ControlMode::PercentOutput, amount);
-  l2.Follow(l1);
+  // l2.Follow(l1);
 }
 void Robot::DriveRight(double amount) {
   r1.Set(ControlMode::PercentOutput, amount);
-  r2.Follow(r1);
+  // r2.Follow(r1);
 }
 void Robot::DriveBoth(double amount) {
   DriveLeft(amount);
@@ -135,26 +143,40 @@ void Robot::Move() {
 
 void Robot::ShiftGears(Robot::Direction dir) {
   frc::DoubleSolenoid::Value state;
-	if (dir == Robot::Direction::up) {
-		state = frc::DoubleSolenoid::kForward;
-	} else {
+	if (dir == Direction::up) {
 		state = frc::DoubleSolenoid::kReverse;
+	} else {
+		state = frc::DoubleSolenoid::kForward;
 	}
 
   driveGearboxes.Set(state);
 }
 
-void Robot::ShiftGears(bool upBtn, bool downBtn) {
+void Robot::ShiftGears(bool downBtn, bool upBtn) {
   if (upBtn) {
-		ShiftGears(up);
+		ShiftGears(Direction::up);
 	}
 	if (downBtn) {
-		ShiftGears(down);
+		ShiftGears(Direction::down);
   }
 }
 
+void Robot::ToggleGear(bool btn) {
+  if(btn) {
+    if ( currentGear == Direction::down ) {
+      currentGear = Direction::up;
+    } else if( currentGear == Direction::up ) {
+      currentGear = Direction::down;
+    }
+  }
+
+  ShiftGears(currentGear);
+}
+
 void Robot::HandleJoysticks() {
-  ShiftGears(leftJoystick.GetRawButton(6), leftJoystick.GetRawButton(4));
+  // ShiftGears(leftJoystick.GetRawButton(6), leftJoystick.GetRawButton(4));
+  ToggleGear(rightJoystick.GetRawButtonPressed(2));
+
 }
 
 double Robot::calculateDampenedJoystick(double rawAxisValue) {
@@ -174,6 +196,10 @@ void Robot::Testing() {
   bool gotTriggerButton = leftJoystick.GetTrigger(); //frc::Joystick::ButtonType::kTriggerButton);
   frc::SmartDashboard::PutBoolean("topButtonLeft", gotTopButton);
   frc::SmartDashboard::PutBoolean("TriggerButtonLeft", gotTriggerButton);
+  //
+  frc::SmartDashboard::PutBoolean("should be shifting", \
+                                  leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
+  
 }
 
 

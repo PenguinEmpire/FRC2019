@@ -28,6 +28,8 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   };
 
+  Direction currentGear = Direction::down;
+
   // # OFFBOARD #
   PenguinJoystick p_joy1;
 
@@ -54,10 +56,13 @@ class Robot : public frc::TimedRobot {
   TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
 
   // OTHER
+
+  // navx::AHRS* ahrs = new A
+
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
 
-  frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
+  //frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
 
   void RobotInit() override;
   void RobotPeriodic() override;
@@ -71,6 +76,7 @@ class Robot : public frc::TimedRobot {
 
   void ShiftGears(Robot::Direction dir);
   void ShiftGears(bool upBtn, bool downBtn);
+  void ToggleGear(bool btn);
 
   void HandleJoysticks();
 
