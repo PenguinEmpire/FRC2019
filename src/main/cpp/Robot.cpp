@@ -24,6 +24,8 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
 
+  lineSensorMid = new frc::DigitalInput(dio4);
+
   compressor.SetClosedLoopControl(true);
   ShiftGears(currentGear);
 
@@ -112,6 +114,9 @@ void Robot::TalonInit() {
   // l2.SetNeutralMode(NeutralMode::Coast);
   r1.SetNeutralMode(NeutralMode::Brake);
   // r2.SetNeutralMode(NeutralMode::Coast); 
+
+
+  // r1.SetSafety
 }
 
 void Robot::DriveLeft(double amount) {
@@ -196,6 +201,8 @@ void Robot::Testing() {
   //
   frc::SmartDashboard::PutBoolean("should be shifting", \
                                   leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
+
+  frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
   
 }
 

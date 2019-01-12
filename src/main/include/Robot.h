@@ -56,6 +56,8 @@ class Robot : public frc::TimedRobot {
   TalonSRX r1{RIGHT_1_CAN_ADDRESS};
   TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
 
+  WPI_TalonSRX test_wpi_talon{0};
+
   // OTHER
 
   AHRS* ahrs = new AHRS(I2C::Port::kMXP);
