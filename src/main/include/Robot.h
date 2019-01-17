@@ -10,15 +10,17 @@
 
 #include <string>
 
-#include <frc/TimedRobot.h>
+#include <frc/TimedRobot.h> 
 #include <frc/smartdashboard/SendableChooser.h>
 #include <frc/WPILib.h>
 
 #include "PenguinConstants.h"
 #include "PenguinJoystick.h"
+#include "Lidar.h"
 
 #include "ctre/Phoenix.h"
 #include "AHRS.h"
+// #include "pathfinder.h"
 
 typedef frc::DigitalInput DIO;
 
@@ -29,7 +31,14 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   };
 
+  enum State {
+      UNINITIALIZED,
+      LINING_UP,
+  }
+
+
   Direction currentGear = Direction::down;
+  State currentState = State::UNINITIALIZED;
 
   // # OFFBOARD #
   PenguinJoystick p_joy1;
@@ -49,14 +58,26 @@ class Robot : public frc::TimedRobot {
   DIO* lineSensorMid;
   DIO* lineSensorRight;
 
+  Lidar* leftLidar = new Lidar(LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO);
+  Lidar* rightLidar = new Lidar(!LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO /* maybe need to put in address */);
+  frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
+  frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
+
+    double leftLidarDistance;
+    double rightLidarDistance;
+    double leftUltrasonicDistance;
+    double rightUltrasonicDistance;
+
   // MOTOR CONTROLLERS
   // Talons
-  TalonSRX l1{LEFT_1_CAN_ADDRESS};
-  TalonSRX l2{LEFT_2_CAN_ADDRESS};
-  TalonSRX r1{RIGHT_1_CAN_ADDRESS};
-  TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
+  WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
+  WPI_TalonSRX l2{LEFT_2_CAN_ADDRESS};
+  WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
+  WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
 
-  WPI_TalonSRX test_wpi_talon{0};
+  // WPI_TalonSRX test_wpi_talon{0};
+
+  frc::DifferentialDrive drive{l1, r1};
 
   // OTHER
 
@@ -82,6 +103,10 @@ class Robot : public frc::TimedRobot {
   void ToggleGear(bool btn);
 
   void HandleJoysticks();
+
+  void GetDistances();
+  void Approach();
+  void LidarInit();
 
   void DriveLeft(double amount);
   void DriveRight(double amount);

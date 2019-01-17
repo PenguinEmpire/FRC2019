@@ -46,3 +46,10 @@ constexpr int LEFT_1_CAN_ADDRESS = can0;
 constexpr int LEFT_2_CAN_ADDRESS = can1;
 constexpr int RIGHT_1_CAN_ADDRESS = can2;
 constexpr int RIGHT_2_CAN_ADDRESS = can3;
+
+constexpr int LEFT_ULTRASONIC_PING_CHANNEL = 2;
+constexpr int LEFT_ULTRASONIC_ECHO_CHANNEL = 3;
+constexpr int RIGHT_ULTRASONIC_PING_CHANNEL = 4;
+constexpr int RIGHT_ULTRASONIC_ECHO_CHANNEL = 5;
+
+constexpr bool LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO = true;

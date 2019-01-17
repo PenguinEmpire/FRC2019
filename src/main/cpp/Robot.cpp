@@ -40,7 +40,10 @@ void Robot::RobotInit() {
  * <p> This runs after the mode specific periodic functions, but before
  * LiveWindow and SmartDashboard integrated updating.
  */
-void Robot::RobotPeriodic() {}
+void Robot::RobotPeriodic() {
+  Testing();
+  GetDistances();
+}
 
 /**
  * This autonomous (along with the chooser code above) shows how to select
@@ -54,38 +57,37 @@ void Robot::RobotPeriodic() {}
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-  m_autoSelected = m_chooser.GetSelected();
-  // m_autoSelected = SmartDashboard::GetString("Auto Selector",
-  //     kAutoNameDefault);
-  std::cout << "Auto selected: " << m_autoSelected << std::endl;
+  { // Built-in auto code
+    m_autoSelected = m_chooser.GetSelected();
+    // m_autoSelected = SmartDashboard::GetString("Auto Selector",
+    //     kAutoNameDefault);
+    std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
-  if (m_autoSelected == kAutoNameCustom) {
-    // Custom Auto goes here
-  } else {
-    // Default Auto goes here
+    if (m_autoSelected == kAutoNameCustom) {
+      // Custom Auto goes here
+    } else {
+      // Default Auto goes here
+    }
   }
-
-//-----------------------------
-
 
 }
 
 void Robot::AutonomousPeriodic() {
-  if (m_autoSelected == kAutoNameCustom) {
-    // Custom Auto goes here
-  } else {
-    // Default Auto goes here
+  { // Built in auto code
+    if (m_autoSelected == kAutoNameCustom) {
+      // Custom Auto goes here
+    } else {
+      // Default Auto goes here
+    }
   }
+
 }
 
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
-  Testing();
-
   HandleJoysticks();
   Move();
-
 /* frc::SmartDashboard::PutNumber("rawAxis0", rightJoystick.GetRawAxis(0));
   frc::SmartDashboard::PutNumber("rawAxis1", rightJoystick.GetRawAxis(1));
   frc::SmartDashboard::PutNumber("rawAxis2", rightJoystick.GetRawAxis(2));
@@ -96,7 +98,7 @@ void Robot::TeleopPeriodic() {
 }
 
 void Robot::TestPeriodic() {
-  Testing();
+//   Testing();
 }
 
 //--------------------------
@@ -126,7 +128,7 @@ void Robot::DriveRight(double amount) {
   r1.Set(ControlMode::PercentOutput, amount);
 }
 void Robot::DriveBoth(double amount) {
-  DriveLeft(amount);
+  DriveLeft (amount);
   DriveRight(amount);
 }
 void Robot::Move() {
@@ -134,7 +136,7 @@ void Robot::Move() {
   double right = rightJoystick.GetRawAxis(1);
   double both;
 
-  if(fabs(left - right) < 0.1) {
+  if(fabs(left - right) < 0.15) {
     both = (left + right) / 2;
     DriveBoth (calculateDampenedJoystick(both ));
   } else {
@@ -181,6 +183,40 @@ void Robot::HandleJoysticks() {
 
 }
 
+void Robot::GetDistances() {
+  leftLidarDistance = leftLidar->AquireDistance();
+  rightLidarDistance = rightLidar->AquireDistance();  
+  leftUltrasonicDistance = leftUltrasonic->GetRangeInches();
+  rightUltrasonicDistance = rightUltrasonic->GetRangeInches();
+
+  frc::SmartDashboard::PutNumber("leftLidarDistance", leftLidarDistance)
+  frc::SmartDashboard::PutNumber("rightLidarDistance", rightLidarDistance)
+  frc::SmartDashboard::PutNumber("leftUltrasonicDistance", leftUltrasonicDistance)
+  frc::SmartDashboard::PutNumber("rightUltrasonicDistance", rightUltrasonicDistance)
+
+}
+
+void Approach(double& left, double& right) {
+  if(currentState == LINING_UP) {
+    double leftGreater = left - right;
+    if(fabs(leftGreater) > /* Parallel tolerance */) {
+    
+      if (leftGreater > 0) { // left further away
+        // send more to left
+      } else {
+
+      }
+
+
+    }
+  }
+}
+
+void LidarInit() {
+  
+}
+
+
 double Robot::calculateDampenedJoystick(double rawAxisValue) {
   double dampening;
   if(fabs(rawAxisValue) <= 0.3) {
@@ -202,7 +238,7 @@ void Robot::Testing() {
   frc::SmartDashboard::PutBoolean("should be shifting", \
                                   leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
 
-  frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
+  // frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
   
 }
 
