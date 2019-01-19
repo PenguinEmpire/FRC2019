@@ -29,16 +29,13 @@ class Robot : public frc::TimedRobot {
 
   enum Direction {
     up, down, left, right, backward, forward
-  };
+  } currentGear = down;
 
   enum State {
       UNINITIALIZED,
       LINING_UP,
-  }
+  } currentState = UNINITIALIZED;
 
-
-  Direction currentGear = Direction::down;
-  State currentState = State::UNINITIALIZED;
 
   // # OFFBOARD #
   PenguinJoystick p_joy1;

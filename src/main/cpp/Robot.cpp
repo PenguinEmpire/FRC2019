@@ -197,17 +197,22 @@ void Robot::GetDistances() {
 }
 
 void Approach(double& left, double& right) {
+  double kP = 1.0;
+  double kI = 0.0;
+  double kD = 0.0;
+
+   
   if(currentState == LINING_UP) {
     double leftGreater = left - right;
-    if(fabs(leftGreater) > /* Parallel tolerance */) {
-    
+    if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
       if (leftGreater > 0) { // left further away
         // send more to left
+        l1.Set(ControlMode::PercentOutput,  leftGreater)
+        r1.Set(ControlMode::PercentOutput, -leftGreater)
       } else {
-
+        l1.Set(ControlMode::PercentOutput, -leftGreater)
+        r1.Set(ControlMode::PercentOutput,  leftGreater)
       }
-
-
     }
   }
 }
