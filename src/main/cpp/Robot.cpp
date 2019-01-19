@@ -110,7 +110,7 @@ void Robot::TalonInit() {
   r2.SetInverted(false);
 
   l2.Follow(l1);
-  r2.Follow(l2);
+  r2.Follow(r2);
 
   l1.SetNeutralMode(NeutralMode::Brake);
   // l2.SetNeutralMode(NeutralMode::Coast);
