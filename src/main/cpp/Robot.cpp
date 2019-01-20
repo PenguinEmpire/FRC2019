@@ -6,6 +6,7 @@
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
+#include "Lidar2.h"
 
 #include <iostream>
 
@@ -24,12 +25,19 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
 
+  // lidarTimer = new frc::Timer();
+  // lidar = new Lidar2;
+  // lidarDist = 0;
+
   lineSensorMid = new frc::DigitalInput(dio4);
 
   compressor.SetClosedLoopControl(true);
   ShiftGears(currentGear);
 
   TalonInit();
+
+  // lidarTimer->Start();
+  // lidarTimer->Reset();
 }
 
 /**
@@ -43,6 +51,13 @@ void Robot::RobotInit() {
 void Robot::RobotPeriodic() {
   Testing();
   GetDistances();
+
+  // lidarDist = lidar->AquireDistance();
+
+  // frc::SmartDashboard::PutNumber("lidarDist", lidarDist);
+  printf("left dist: %i, right dist: %i", leftLidarDistance, rightLidarDistance);
+
+
 }
 
 /**
@@ -110,7 +125,7 @@ void Robot::TalonInit() {
   r2.SetInverted(false);
 
   l2.Follow(l1);
-  r2.Follow(r2);
+  r2.Follow(r1);
 
   l1.SetNeutralMode(NeutralMode::Brake);
   // l2.SetNeutralMode(NeutralMode::Coast);
@@ -186,36 +201,36 @@ void Robot::HandleJoysticks() {
 void Robot::GetDistances() {
   leftLidarDistance = leftLidar->AquireDistance();
   rightLidarDistance = rightLidar->AquireDistance();  
-  leftUltrasonicDistance = leftUltrasonic->GetRangeInches();
-  rightUltrasonicDistance = rightUltrasonic->GetRangeInches();
+  // leftUltrasonicDistance = leftUltrasonic->GetRangeInches();
+  // rightUltrasonicDistance = rightUltrasonic->GetRangeInches();
 
-  frc::SmartDashboard::PutNumber("leftLidarDistance", leftLidarDistance)
-  frc::SmartDashboard::PutNumber("rightLidarDistance", rightLidarDistance)
-  frc::SmartDashboard::PutNumber("leftUltrasonicDistance", leftUltrasonicDistance)
-  frc::SmartDashboard::PutNumber("rightUltrasonicDistance", rightUltrasonicDistance)
+  frc::SmartDashboard::PutNumber("leftLidarDistance", leftLidarDistance);
+  frc::SmartDashboard::PutNumber("rightLidarDistance", rightLidarDistance);
+  // frc::SmartDashboard::PutNumber("leftUltrasonicDistance", leftUltrasonicDistance);
+  // frc::SmartDashboard::PutNumber("rightUltrasonicDistance", rightUltrasonicDistance);
 
 }
 
-void Approach(double& left, double& right) {
-  double kP = 1.0;
-  double kI = 0.0;
-  double kD = 0.0;
+// void Approach(double& left, double& right) {
+//   double kP = 1.0;
+//   double kI = 0.0;
+//   double kD = 0.0;
 
    
-  if(currentState == LINING_UP) {
-    double leftGreater = left - right;
-    if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
-      if (leftGreater > 0) { // left further away
-        // send more to left
-        l1.Set(ControlMode::PercentOutput,  leftGreater)
-        r1.Set(ControlMode::PercentOutput, -leftGreater)
-      } else {
-        l1.Set(ControlMode::PercentOutput, -leftGreater)
-        r1.Set(ControlMode::PercentOutput,  leftGreater)
-      }
-    }
-  }
-}
+//   if(currentState == State::LINING_UP) {
+//     double leftGreater = left - right;
+//     if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
+//       if (leftGreater > 0) { // left further away
+//         // send more to left
+//         l1.Set(ControlMode::PercentOutput,  leftGreater);
+//         r1.Set(ControlMode::PercentOutput, -leftGreater);
+//       } else {
+//         l1.Set(ControlMode::PercentOutput, -leftGreater);
+//         r1.Set(ControlMode::PercentOutput,  leftGreater);
+//       }
+//     }
+//   }
+// }
 
 void LidarInit() {
   
@@ -227,7 +242,7 @@ double Robot::calculateDampenedJoystick(double rawAxisValue) {
   if(fabs(rawAxisValue) <= 0.3) {
       dampening = 0.0;
   } else if(fabs(rawAxisValue) < 0.7) {
-      dampening = 1.0;
+      dampening = 0.7;
   } else {
       dampening = 0.9;
   }

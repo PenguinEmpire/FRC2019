@@ -6,7 +6,7 @@ class Lidar {
 public:
 	Lidar() {
         I2CBus = new frc::I2C(frc::I2C::kOnboard, Lidar::ADDRESS_DEFAULT);
-        // Wait(1.);
+        frc::Wait(1.);
         
     };
 
@@ -15,11 +15,14 @@ public:
     }
 
     Lidar(bool throughNAVX) {
+        printf("lidar bool contructor");
         if(throughNAVX) {
             I2CBus = new frc::I2C(frc::I2C::kMXP, Lidar::ADDRESS_DEFAULT);
+            printf("lidar constructed throughNAVX");
         } else {
             I2CBus = new frc::I2C(frc::I2C::kOnboard, Lidar::ADDRESS_DEFAULT);
         }
+        frc::Wait(1.);
     }
 
 	unsigned int AquireDistance(/*Timer m_timer*/) {
@@ -28,33 +31,37 @@ public:
         unsigned char distanceRegister_1st[Lidar::WRITE_1_REGISTER];
         distanceRegister_1st[Lidar::WRITE_1_REGISTER - 1] = Lidar::DISTANCE_1_2;
 
-/*      // printf("Time =  %f starting Lidar::AquireDistance\n", m_timer->Get());
+        // printf("Time =   starting Lidar::AquireDistance\n");// , m_timer->Get());
 
-        // {Wait(.0001);} while (Busy());
+        // {frc::Wait(.0001);} while (Busy());
 
-        // printf("Time =  %f acquiring distance\n", m_timer->Get());
-*/
+        // printf("Time =   acquiring distance\n");//  , m_timer->Get());
+
 
         /***********acquire distance**********/		//	WriteBulk() also works
         if ( I2CBus->Write(Lidar::COMMAND, Lidar::ACQUIRE_DC_CORRECT) ) {
             printf ( "Write operation failed! line %d\n", __LINE__ ); // initiate distance acquisition with DC stabilization
+        } else {
+            printf("write operation succeeded");
         }
 
-/*         // do{Wait(.0001);} while (Busy());
+        // do{frc::Wait(.0001);} while (Busy());
 
-        // printf("Time =  %f reading distance\n", m_timer->Get());
-*/
+        // printf("Time =  %f reading distance\n");//, m_timer->Get());
+
         /**********read distance**********/     // Read() does not work
         if ( I2CBus->WriteBulk(distanceRegister_1st, Lidar::WRITE_1_REGISTER)) {
-            printf ( "WriteBulk distance failed! line %d\n", __LINE__ );
+            // printf ( "WriteBulk distance failed! line %d\n", __LINE__ );
         } else {
+            // printf("WriteBulk operation succeeded");
             if ( I2CBus->ReadOnly(Lidar::READ_2_REGISTERS, distance)) {
                 printf ( "ReadOnly distance failed! line %d\n", __LINE__ );
-            }
+            } else { printf("readonly operation succeeded");}
         }
 
         unsigned int dist = (unsigned int)(distance[0]<<8) + (unsigned int)(distance[1]);
 
+        printf("distance %d\n", dist);
         // printf("Time =  %f, Distance= %d (0x%0x)\n", m_timer->Get(), dist, dist);
         return dist;
     };
