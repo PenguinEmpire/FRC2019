@@ -16,7 +16,6 @@
 #include "PenguinConstants.h"
 #include "PenguinJoystick.h"
 #include "Lidar.h"
-#include "Lidar2.h"
 
 #include "ctre/Phoenix.h"
 #include "AHRS.h"
