@@ -25,19 +25,12 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(dio1);
   liftBottom = new frc::DigitalInput(dio2);
 
-  // lidarTimer = new frc::Timer();
-  // lidar = new Lidar2;
-  // lidarDist = 0;
-
   lineSensorMid = new frc::DigitalInput(dio4);
 
   compressor.SetClosedLoopControl(true);
   ShiftGears(currentGear);
 
   TalonInit();
-
-  // lidarTimer->Start();
-  // lidarTimer->Reset();
 }
 
 /**
@@ -52,9 +45,6 @@ void Robot::RobotPeriodic() {
   Testing();
   GetDistances();
 
-  // lidarDist = lidar->AquireDistance();
-
-  // frc::SmartDashboard::PutNumber("lidarDist", lidarDist);
   printf("left dist: %i, right dist: %i", leftLidarDistance, rightLidarDistance);
 
 

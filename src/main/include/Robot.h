@@ -1,4 +1,3 @@
-
 /*----------------------------------------------------------------------------*/
 /* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
@@ -58,17 +57,19 @@ class Robot : public frc::TimedRobot {
 
   Lidar* leftLidar = new Lidar(LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO);
   Lidar* rightLidar = new Lidar(!LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO /* maybe need to put in address */);
-  // frc::Timer* lidarTimer;
-  // Lidar2* lidar;
   int lidarDist;
 
   frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
   frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
 
-    int leftLidarDistance;
-    int rightLidarDistance;
-    int leftUltrasonicDistance;
-    int rightUltrasonicDistance;
+  DIO* leftDioUltrasonic;
+  DIO* rightDioUltrasonic;
+
+
+  int leftLidarDistance;
+  int rightLidarDistance;
+  int leftUltrasonicDistance;
+  int rightUltrasonicDistance;
 
   // MOTOR CONTROLLERS
   // Talons
