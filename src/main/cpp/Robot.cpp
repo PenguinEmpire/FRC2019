@@ -26,8 +26,16 @@ void Robot::RobotInit() {
 
   lineSensorMid = new frc::DigitalInput(dio4);
 
+  analogUltrasonic->InitAccumulator();
+  analogUltrasonic->ResetAccumulator();
+
+  (char)31;
+
+  serialUltrasonic->EnableTermination((char)31);
+  serialUltrasonic->Reset();
+
   compressor.SetClosedLoopControl(true);
-  ShiftGears(currentGear);
+  ShiftGears(currentGear, driveGearboxes);
 
   TalonInit();
 }
@@ -149,41 +157,48 @@ void Robot::Move() {
   }
 }
 
-void Robot::ShiftGears(Robot::Direction dir) {
+void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
   frc::DoubleSolenoid::Value state;
-	if (dir == Direction::up) {
+	if (dir == Direction::up /* or Direction::forward? reverse should prob be down/back. */) {
 		state = frc::DoubleSolenoid::kReverse;
-	} else {
+	} else if (dir == Direction::down) {
 		state = frc::DoubleSolenoid::kForward;
 	}
 
-  driveGearboxes.Set(state);
+  solenoid.Set(state);
 }
 
-void Robot::ShiftGears(bool downBtn, bool upBtn) {
+void Robot::ShiftGears(frc::DoubleSolenoid::Value state, frc::DoubleSolenoid& solenoid) {
+  solenoid.Set(state);
+}
+
+void Robot::ShiftGears(bool downBtn, bool upBtn, frc::DoubleSolenoid& solenoid) {
   if (upBtn) {
-		ShiftGears(Direction::up);
+		ShiftGears(Direction::up, solenoid);
 	}
 	if (downBtn) {
-		ShiftGears(Direction::down);
+		ShiftGears(Direction::down, solenoid);
   }
 }
 
-void Robot::ToggleGear(bool btn) {
-  if(btn) {
-    if ( currentGear == Direction::down ) {
-      currentGear = Direction::up;
-    } else if( currentGear == Direction::up ) {
-      currentGear = Direction::down;
-    }
-  }
+void Robot::ToggleGear(bool btn, frc::DoubleSolenoid& solenoid) {
+  frc::DoubleSolenoid::Value state = solenoid.Get();
+  state = reverseStates[state];
+  // if(btn) {
+  //   if ( currentGear == Direction::down) {
+  //     currentGear = Direction::up;
+  //   } else if( currentGear == Direction::up) {
+  //     currentGear = Direction::down;
+  //   }
+  // }
 
-  ShiftGears(currentGear);
+  // ShiftGears(currentGear, driveGearboxes);
+
+  ShiftGears(state, solenoid);
 }
 
 void Robot::HandleJoysticks() {
-  // ShiftGears(leftJoystick.GetRawButton(6), leftJoystick.GetRawButton(4));
-  ToggleGear(rightJoystick.GetRawButtonPressed(2));
+  ToggleGear(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
 
 }
 
@@ -198,7 +213,29 @@ void Robot::GetDistances() {
   // frc::SmartDashboard::PutNumber("leftUltrasonicDistance", leftUltrasonicDistance);
   // frc::SmartDashboard::PutNumber("rightUltrasonicDistance", rightUltrasonicDistance);
 
+  int gotValue = analogUltrasonic->GetValue();
+  int gotAverageValue = analogUltrasonic->GetAverageValue();
+  // double gotVoltage = analogUltrasonic->GetVoltage();
+  // double gotAverageVoltage = analogUltrasonic->GetAverageVoltage();
+
+  
+
+
+  frc::SmartDashboard::PutNumber("gotValue", gotValue);
+  frc::SmartDashboard::PutNumber("gotAverageValue", gotAverageValue);
+  // frc::SmartDashboard::PutNumber("gotVoltage", gotVoltage);
+  // frc::SmartDashboard::PutNumber("gotAverageVoltage", gotAverageVoltage);
+
+  // int bytesReceived = serialUltrasonic->GetBytesReceived();
+  // char buffer[bytesReceived];
+  // int readBytes = serialUltrasonic->Read(buffer, bytesReceived);
+
+  // frc::SmartDashboard::PutNumber("bytesReceived", bytesReceived);
+  // frc::SmartDashboard::PutRaw("buffer", buffer);
+  // frc::SmartDashboard::PutNumber("readBytes", readBytes);
+
 }
+  
 
 // void Approach(double& left, double& right) {
 //   double kP = 1.0;

@@ -47,6 +47,16 @@ constexpr int LEFT_2_CAN_ADDRESS =  1;
 constexpr int RIGHT_1_CAN_ADDRESS = 2;
 constexpr int RIGHT_2_CAN_ADDRESS = 3;
 
+constexpr int INTAKE_MOTOR_PWM_PORT = pwm0;
+constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = can4;
+
+/** # where the pneumatics are plugged in
+ * driveGearboxes{pcm0, pch0, pch1};
+ * intakePiston{pcm0, pch2, pch3};
+ * ballPusher{pcm0, pch4, pch5};
+ * driveGearboxes{pcm0, pch6, pch7}; 
+*/
+
 constexpr int LEFT_ULTRASONIC_PING_CHANNEL = 2;
 constexpr int LEFT_ULTRASONIC_ECHO_CHANNEL = 3;
 constexpr int RIGHT_ULTRASONIC_PING_CHANNEL = 4;

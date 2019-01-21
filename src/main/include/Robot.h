@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include <frc/TimedRobot.h> 
 #include <frc/smartdashboard/SendableChooser.h>
@@ -21,6 +22,7 @@
 #include "AHRS.h"
 // #include "pathfinder.h"
 
+using std::unordered_map;
 typedef frc::DigitalInput DIO;
 
 class Robot : public frc::TimedRobot {
@@ -30,11 +32,27 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   } currentGear = down;
 
+  unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = { \
+      {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, \
+      {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, \
+  };
+
   enum State {
       UNINITIALIZED,
       LINING_UP,
   } currentState = UNINITIALIZED;
 
+/*   struct pneumatic {
+    frc::DoubleSolenoid solenoid;
+    Robot::Direction currentDir;
+    
+    pneumatic(int pcm, int pch_1, int pch_2, Direction startDir) {
+      solenoid = frc::DoubleSolenoid::DoubleSolenoid(pcm, pch_1, pch_2);
+      currentDir = startDir;
+    }
+    ~pneumatic() = delete;
+  };
+*/
 
   // # OFFBOARD #
   PenguinJoystick p_joy1;
@@ -63,6 +81,9 @@ class Robot : public frc::TimedRobot {
 
   DIO* leftDioUltrasonic;
   DIO* rightDioUltrasonic;
+  
+  frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
+  frc::AnalogInput* analogUltrasonic = new frc::AnalogInput(0);
 
 
   int leftLidarDistance;
@@ -77,6 +98,9 @@ class Robot : public frc::TimedRobot {
   WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
   WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
 
+  frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
+  WPI_TalonSRX elevatorMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
+
   // WPI_TalonSRX test_wpi_talon{0};
 
   frc::DifferentialDrive drive{l1, r1};
@@ -87,6 +111,10 @@ class Robot : public frc::TimedRobot {
 
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
+  frc::DoubleSolenoid intakePiston{pcm0, pch2, pch3};
+  frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
+  frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
+
 
   //frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
 
@@ -100,9 +128,10 @@ class Robot : public frc::TimedRobot {
 
   void TalonInit();
 
-  void ShiftGears(Robot::Direction dir);
-  void ShiftGears(bool upBtn, bool downBtn);
-  void ToggleGear(bool btn);
+  void ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid);
+  void ShiftGears(frc::DoubleSolenoid::Value state, frc::DoubleSolenoid& solenoid);
+  void ShiftGears(bool upBtn, bool downBtn, frc::DoubleSolenoid& solenoid);
+  void ToggleGear(bool btn, frc::DoubleSolenoid& solenoid);
 
   void HandleJoysticks();
 
