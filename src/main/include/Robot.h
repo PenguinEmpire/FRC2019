@@ -59,6 +59,7 @@ class Robot : public frc::TimedRobot {
 
   frc::Joystick leftJoystick = frc::Joystick(usb0);
   frc::Joystick rightJoystick = frc::Joystick(usb1);
+  frc::Joystick gamerJoystick = frc::Joystick(usb2);
 
   // # ONBOARD #
   // SENSORS
@@ -111,7 +112,7 @@ class Robot : public frc::TimedRobot {
 
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-  frc::DoubleSolenoid intakePiston{pcm0, pch2, pch3};
+  frc::DoubleSolenoid intakeArm{pcm0, pch2, pch3};
   frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
   frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
 
@@ -131,7 +132,8 @@ class Robot : public frc::TimedRobot {
   void ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid);
   void ShiftGears(frc::DoubleSolenoid::Value state, frc::DoubleSolenoid& solenoid);
   void ShiftGears(bool upBtn, bool downBtn, frc::DoubleSolenoid& solenoid);
-  void ToggleGear(bool btn, frc::DoubleSolenoid& solenoid);
+  void ToggleSolenoid(bool btn, frc::DoubleSolenoid& solenoid);
+  void ToggleSolenoid(frc::DoubleSolenoid& Solenoid);
 
   void HandleJoysticks();
 

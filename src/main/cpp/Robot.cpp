@@ -20,22 +20,23 @@ void Robot::RobotInit() {
   //-----------------------------------------------------------------------------------
 
   //Object Initialization
-  liftTop = new frc::DigitalInput(dio0);
-  liftMid = new frc::DigitalInput(dio1);
-  liftBottom = new frc::DigitalInput(dio2);
+  liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
+  liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
+  liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
 
   lineSensorMid = new frc::DigitalInput(dio4);
 
   analogUltrasonic->InitAccumulator();
   analogUltrasonic->ResetAccumulator();
 
-  (char)31;
-
   serialUltrasonic->EnableTermination((char)31);
   serialUltrasonic->Reset();
 
   compressor.SetClosedLoopControl(true);
-  ShiftGears(currentGear, driveGearboxes);
+  ShiftGears(Direction::down, driveGearboxes);
+  // intakeArm.Set(frc::DoubleSolenoid::kReverse);
+  // ballPusher.Set(frc::DoubleSolenoid::kReverse);    // IS THIS RIGHT? (TODO)
+  // hatchPusher.Set(frc::DoubleSolenoid::kReverse);
 
   TalonInit();
 }
@@ -164,7 +165,6 @@ void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
 	} else if (dir == Direction::down) {
 		state = frc::DoubleSolenoid::kForward;
 	}
-
   solenoid.Set(state);
 }
 
@@ -181,9 +181,12 @@ void Robot::ShiftGears(bool downBtn, bool upBtn, frc::DoubleSolenoid& solenoid) 
   }
 }
 
-void Robot::ToggleGear(bool btn, frc::DoubleSolenoid& solenoid) {
-  frc::DoubleSolenoid::Value state = solenoid.Get();
-  state = reverseStates[state];
+void Robot::ToggleSolenoid(bool btn, frc::DoubleSolenoid& solenoid) {
+  if (btn) {
+    ToggleSolenoid(solenoid);
+  }
+
+/* old code 
   // if(btn) {
   //   if ( currentGear == Direction::down) {
   //     currentGear = Direction::up;
@@ -193,12 +196,22 @@ void Robot::ToggleGear(bool btn, frc::DoubleSolenoid& solenoid) {
   // }
 
   // ShiftGears(currentGear, driveGearboxes);
+*/
+}
 
+void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
+  frc::DoubleSolenoid::Value state = solenoid.Get();
+  state = reverseStates[state];
   ShiftGears(state, solenoid);
 }
 
 void Robot::HandleJoysticks() {
-  ToggleGear(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
+  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
+  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
+  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
+
+  intakeMotor.Set(gamerJoystick.GetRawAxis(/* TODO */ 0));
 
 }
 
@@ -276,12 +289,12 @@ double Robot::calculateDampenedJoystick(double rawAxisValue) {
 }
 
 void Robot::Testing() {
-  bool gotTopButton = leftJoystick.GetTop(); //frc::Joystick::ButtonType::kTopButton);
-  bool gotTriggerButton = leftJoystick.GetTrigger(); //frc::Joystick::ButtonType::kTriggerButton);
-  frc::SmartDashboard::PutBoolean("topButtonLeft", gotTopButton);
-  frc::SmartDashboard::PutBoolean("TriggerButtonLeft", gotTriggerButton);
-  //
-  frc::SmartDashboard::PutBoolean("should be shifting", \
+  // bool gotTopButton = leftJoystick.GetTop(); 
+  // bool gotTriggerButton = leftJoystick.GetTrigger();
+  // frc::SmartDashboard::PutBoolean("topButtonLeft", gotTopButton);
+  // frc::SmartDashboard::PutBoolean("TriggerButtonLeft", gotTriggerButton);
+  
+  // frc::SmartDashboard::PutBoolean("should be shifting", \
                                   leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
 
   // frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
