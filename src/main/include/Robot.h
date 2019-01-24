@@ -100,7 +100,8 @@ class Robot : public frc::TimedRobot {
   WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
-  WPI_TalonSRX elevatorMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
+  WPI_TalonSRX elevatorSRXMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
+  frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM}
 
   // WPI_TalonSRX test_wpi_talon{0};
 
@@ -115,6 +116,8 @@ class Robot : public frc::TimedRobot {
   frc::DoubleSolenoid intakeArm{pcm0, pch2, pch3};
   frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
   frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
+
+  frc::PIDController straighten = frc::PIDController();
 
 
   //frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
@@ -135,7 +138,7 @@ class Robot : public frc::TimedRobot {
   void ToggleSolenoid(bool btn, frc::DoubleSolenoid& solenoid);
   void ToggleSolenoid(frc::DoubleSolenoid& Solenoid);
 
-  void HandleJoysticks();
+  void HandleButtons();
 
   void GetDistances();
   void Approach();
@@ -145,6 +148,7 @@ class Robot : public frc::TimedRobot {
   void DriveRight(double amount);
   void DriveBoth(double amount);
   void Move(); //TODO: better name
+  void RunElevator();
 
 
 

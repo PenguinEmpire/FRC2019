@@ -6,7 +6,7 @@
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
-\
+
 #include <iostream>
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -39,6 +39,8 @@ void Robot::RobotInit() {
   // hatchPusher.Set(frc::DoubleSolenoid::kReverse);
 
   TalonInit();
+  elevatorSparkMotor.SetInverted(false); // TODO
+  intakeMotor.SetInverted(false); // TODO
 }
 
 /**
@@ -99,8 +101,9 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
-  HandleJoysticks();
+  HandleButtons();
   Move();
+  RunElevator(); 
 /* frc::SmartDashboard::PutNumber("rawAxis0", rightJoystick.GetRawAxis(0));
   frc::SmartDashboard::PutNumber("rawAxis1", rightJoystick.GetRawAxis(1));
   frc::SmartDashboard::PutNumber("rawAxis2", rightJoystick.GetRawAxis(2));
@@ -158,6 +161,11 @@ void Robot::Move() {
   }
 }
 
+void Robot::RunElevator() {
+  double val = gamerJoystick.GetRawAxis(3); // right joy, up/down
+  elevatorSparkMotor.Set(val * 0.2);
+}
+
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
   frc::DoubleSolenoid::Value state;
 	if (dir == Direction::up /* or Direction::forward? reverse should prob be down/back. */) {
@@ -205,13 +213,12 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
   ShiftGears(state, solenoid);
 }
 
-void Robot::HandleJoysticks() {
+void Robot::HandleButtons() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
 
-  intakeMotor.Set(gamerJoystick.GetRawAxis(/* TODO */ 0));
 
 }
 
@@ -250,26 +257,26 @@ void Robot::GetDistances() {
 }
   
 
-// void Approach(double& left, double& right) {
-//   double kP = 1.0;
-//   double kI = 0.0;
-//   double kD = 0.0;
+void Approach(double& left, double& right) {
+  // double kP = 1.0;
+  // double kI = 0.0;
+  // double kD = 0.0;
 
    
-//   if(currentState == State::LINING_UP) {
-//     double leftGreater = left - right;
-//     if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
-//       if (leftGreater > 0) { // left further away
-//         // send more to left
-//         l1.Set(ControlMode::PercentOutput,  leftGreater);
-//         r1.Set(ControlMode::PercentOutput, -leftGreater);
-//       } else {
-//         l1.Set(ControlMode::PercentOutput, -leftGreater);
-//         r1.Set(ControlMode::PercentOutput,  leftGreater);
-//       }
-//     }
-//   }
-// }
+  // if(currentState == State::LINING_UP) {
+  //   double leftGreater = left - right;
+  //   if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
+  //     if (leftGreater > 0) { // left further away
+  //       // send more to left
+  //       l1.Set(ControlMode::PercentOutput,  leftGreater);
+  //       r1.Set(ControlMode::PercentOutput, -leftGreater);
+  //     } else {
+  //       l1.Set(ControlMode::PercentOutput, -leftGreater);
+  //       r1.Set(ControlMode::PercentOutput,  leftGreater);
+  //     }
+  //   }
+  // }
+}
 
 void LidarInit() {
   

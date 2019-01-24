@@ -49,6 +49,8 @@ constexpr int RIGHT_2_CAN_ADDRESS = 3;
 
 constexpr int INTAKE_MOTOR_PWM_PORT = pwm0;
 constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = can4;
+constexpr int ELEVATOR_SPARK_PWM = pwm1;
+
 
 constexpr int DIO_ELEVATOR_TOP = dio0;
 constexpr int DIO_ELEVATOR_MID = dio1; // TODO: assign ports
