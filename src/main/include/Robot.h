@@ -55,8 +55,6 @@ class Robot : public frc::TimedRobot {
 */
 
   // # OFFBOARD #
-  PenguinJoystick p_joy1;
-
   frc::Joystick leftJoystick = frc::Joystick(usb0);
   frc::Joystick rightJoystick = frc::Joystick(usb1);
   frc::Joystick gamerJoystick = frc::Joystick(usb2);
@@ -68,59 +66,39 @@ class Robot : public frc::TimedRobot {
   DIO* liftMid;
   DIO* liftTop;
   
-  // Line following sensors
-  DIO* lineSensorLeft;
-  DIO* lineSensorMid;
-  DIO* lineSensorRight;
+  // Lidar* leftLidar = new Lidar(LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO);
+  // Lidar* rightLidar = new Lidar(!LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO /* maybe need to put in address */);
+  // int lidarDist;
 
-  Lidar* leftLidar = new Lidar(LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO);
-  Lidar* rightLidar = new Lidar(!LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO /* maybe need to put in address */);
-  int lidarDist;
+  // frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
+  // frc::AnalogInput* analogUltrasonic = new frc::AnalogInput(1);
 
-  frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
-  frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
-
-  DIO* leftDioUltrasonic;
-  DIO* rightDioUltrasonic;
-  
-  frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
-  frc::AnalogInput* analogUltrasonic = new frc::AnalogInput(0);
-
-
-  int leftLidarDistance;
-  int rightLidarDistance;
-  int leftUltrasonicDistance;
-  int rightUltrasonicDistance;
+  // int leftLidarDistance;
+  // int rightLidarDistance;
+  // int leftUltrasonicDistance;
+  // int rightUltrasonicDistance;
 
   // MOTOR CONTROLLERS
   // Talons
-  WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
-  WPI_TalonSRX l2{LEFT_2_CAN_ADDRESS};
-  WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
-  WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
+  frc::Spark l1{LEFT1_PWM_PORT };
+  frc::Spark l2{LEFT2_PWM_PORT };
+  frc::Spark r1{RIGHT1_PWM_PORT};
+  frc::Spark r2{RIGHT2_PWM_PORT}; 
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
-  WPI_TalonSRX elevatorSRXMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
-  frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM}
-
-  // WPI_TalonSRX test_wpi_talon{0};
-
-  frc::DifferentialDrive drive{l1, r1};
+  frc::Spark elevatorMotor{ELEVATOR_SPARK_PWM_PORT};
 
   // OTHER
 
-  AHRS* ahrs = new AHRS(I2C::Port::kMXP);
+  // AHRS* ahrs = new AHRS(I2C::Port::kMXP);
 
   frc::Compressor compressor{pcm0};
   frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-  frc::DoubleSolenoid intakeArm{pcm0, pch2, pch3};
+  frc::DoubleSolenoid intakeArm{pcm0, pch6, pch7};
   frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
-  frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
+  frc::DoubleSolenoid hatchPusher{pcm0, pch2, pch3};
 
-  frc::PIDController straighten = frc::PIDController();
-
-
-  //frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
+  frc::Encoder leftEnc{dio0, dio1}, rightEnc{dio2, dio3}; // might need to switch
 
   void RobotInit() override;
   void RobotPeriodic() override;
@@ -130,7 +108,7 @@ class Robot : public frc::TimedRobot {
   void TeleopPeriodic() override;
   void TestPeriodic() override;
 
-  void TalonInit();
+  void SparkInvert();
 
   void ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid);
   void ShiftGears(frc::DoubleSolenoid::Value state, frc::DoubleSolenoid& solenoid);

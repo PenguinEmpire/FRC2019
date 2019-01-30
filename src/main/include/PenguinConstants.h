@@ -1,3 +1,5 @@
+#pragma once
+
 constexpr int dio0 = 0;
 constexpr int dio1 = 1;
 constexpr int dio2 = 2;
@@ -42,15 +44,13 @@ constexpr int can5 = 5;
 constexpr int can6 = 6;
 constexpr int can7 = 7;
 
-constexpr int LEFT_1_CAN_ADDRESS =  0;
-constexpr int LEFT_2_CAN_ADDRESS =  1;
-constexpr int RIGHT_1_CAN_ADDRESS = 2;
-constexpr int RIGHT_2_CAN_ADDRESS = 3;
+constexpr int LEFT1_PWM_PORT  = 0;
+constexpr int LEFT2_PWM_PORT  = 1;
+constexpr int RIGHT1_PWM_PORT = 2;
+constexpr int RIGHT2_PWM_PORT = 3;
 
-constexpr int INTAKE_MOTOR_PWM_PORT = pwm0;
-constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = can4;
-constexpr int ELEVATOR_SPARK_PWM = pwm1;
-
+constexpr int INTAKE_MOTOR_PWM_PORT =   4;
+constexpr int ELEVATOR_SPARK_PWM_PORT = 5;
 
 constexpr int DIO_ELEVATOR_TOP = dio0;
 constexpr int DIO_ELEVATOR_MID = dio1; // TODO: assign ports

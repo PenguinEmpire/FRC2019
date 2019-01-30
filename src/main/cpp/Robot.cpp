@@ -20,26 +20,17 @@ void Robot::RobotInit() {
   //-----------------------------------------------------------------------------------
 
   //Object Initialization
-  liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
-  liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
-  liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
-
-  lineSensorMid = new frc::DigitalInput(dio4);
-
-  analogUltrasonic->InitAccumulator();
-  analogUltrasonic->ResetAccumulator();
-
-  serialUltrasonic->EnableTermination((char)31);
-  serialUltrasonic->Reset();
+  // liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
+  // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
+  // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
 
   compressor.SetClosedLoopControl(true);
   ShiftGears(Direction::down, driveGearboxes);
-  // intakeArm.Set(frc::DoubleSolenoid::kReverse);
-  // ballPusher.Set(frc::DoubleSolenoid::kReverse);    // IS THIS RIGHT? (TODO)
-  // hatchPusher.Set(frc::DoubleSolenoid::kReverse);
+  intakeArm.Set(frc::DoubleSolenoid::  kReverse);
+  ballPusher.Set(frc::DoubleSolenoid:: kReverse);    // IS THIS RIGHT? (TODO)
+  hatchPusher.Set(frc::DoubleSolenoid::kReverse);
 
-  TalonInit();
-  elevatorSparkMotor.SetInverted(false); // TODO
+  elevatorMotor.SetInverted(false); // TODO
   intakeMotor.SetInverted(false); // TODO
 }
 
@@ -54,10 +45,6 @@ void Robot::RobotInit() {
 void Robot::RobotPeriodic() {
   Testing();
   GetDistances();
-
-  printf("left dist: %i, right dist: %i", leftLidarDistance, rightLidarDistance);
-
-
 }
 
 /**
@@ -119,29 +106,24 @@ void Robot::TestPeriodic() {
 
 //--------------------------
 
-void Robot::TalonInit() {
-  l1.SetInverted(true);
-  l2.SetInverted(true);
+void Robot::SparkInvert() {
+  l1.SetInverted(false);
+  l2.SetInverted(false);
   r1.SetInverted(false); 
   r2.SetInverted(false);
 
-  l2.Follow(l1);
-  r2.Follow(r1);
+  intakeMotor.SetInverted(false);
+  elevatorMotor.SetInverted(false);
 
-  l1.SetNeutralMode(NeutralMode::Brake);
-  // l2.SetNeutralMode(NeutralMode::Coast);
-  r1.SetNeutralMode(NeutralMode::Brake);
-  // r2.SetNeutralMode(NeutralMode::Coast); 
-
-
-  // r1.SetSafety
 }
 
 void Robot::DriveLeft(double amount) {
-  l1.Set(ControlMode::PercentOutput, amount);
+  l1.Set(amount);
+  l2.Set(amount);
 }
 void Robot::DriveRight(double amount) {
-  r1.Set(ControlMode::PercentOutput, amount);
+  r1.Set(amount);
+  r2.Set(amount);
 }
 void Robot::DriveBoth(double amount) {
   DriveLeft (amount);
@@ -162,8 +144,8 @@ void Robot::Move() {
 }
 
 void Robot::RunElevator() {
-  double val = gamerJoystick.GetRawAxis(3); // right joy, up/down
-  elevatorSparkMotor.Set(val * 0.2);
+  // double val = gamerJoystick.GetRawAxis(3); // right joy, up/down
+  // elevatorMotor.Set(gamerJoystick.GetRawAxis(3) * 0.2);
 }
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
@@ -215,15 +197,19 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
 
 void Robot::HandleButtons() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
+
+  elevatorMotor.Set(gamerJoystick.GetRawAxis(3) * 1);//0.2);
+  intakeMotor.Set(-gamerJoystick.GetRawAxis(1) * 0.2);
+
 
 
 }
 
 void Robot::GetDistances() {
-  leftLidarDistance = leftLidar->AquireDistance();
+/*  leftLidarDistance = leftLidar->AquireDistance();
   rightLidarDistance = rightLidar->AquireDistance();  
   // leftUltrasonicDistance = leftUltrasonic->GetRangeInches();
   // rightUltrasonicDistance = rightUltrasonic->GetRangeInches();
@@ -253,7 +239,7 @@ void Robot::GetDistances() {
   // frc::SmartDashboard::PutNumber("bytesReceived", bytesReceived);
   // frc::SmartDashboard::PutRaw("buffer", buffer);
   // frc::SmartDashboard::PutNumber("readBytes", readBytes);
-
+*/
 }
   
 
