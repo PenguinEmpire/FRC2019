@@ -291,6 +291,12 @@ void Robot::Testing() {
                                   leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
 
   // frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
+  frc::SmartDashboard::PutBoolean("compressor switch value", compressor.GetPressureSwitchValue());
+  frc::SmartDashboard::PutBoolean("compressor enabled", compressor.Enabled());
+  frc::SmartDashboard::PutBoolean("compressor enabled", compressor.GetClosedLoopControl());
+  frc::SmartDashboard::PutNumber("compressor current draw", compressor.GetCompressorCurrent());
+  frc::SmartDashboard::PutBoolean("compressor not connected sticky", compressor.GetCompressorNotConnectedStickyFault());
+  frc::SmartDashboard::PutBoolean("compressor not connected sticky", compressor.GetCompressorNotConnectedFault());
   
 }
 
