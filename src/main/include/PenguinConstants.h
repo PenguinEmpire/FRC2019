@@ -42,19 +42,21 @@ constexpr int can5 = 5;
 constexpr int can6 = 6;
 constexpr int can7 = 7;
 
+constexpr float PULSE_IN = 0.16;
+
 constexpr int LEFT_1_CAN_ADDRESS =  0;
 constexpr int LEFT_2_CAN_ADDRESS =  1;
 constexpr int RIGHT_1_CAN_ADDRESS = 2;
 constexpr int RIGHT_2_CAN_ADDRESS = 3;
-
+ 
 constexpr int INTAKE_MOTOR_PWM_PORT = pwm0;
 constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = can4;
 constexpr int ELEVATOR_SPARK_PWM = pwm1;
 
 
-constexpr int DIO_ELEVATOR_TOP = dio0;
-constexpr int DIO_ELEVATOR_MID = dio1; // TODO: assign ports
-constexpr int DIO_ELEVATOR_BOTTOM = dio2;
+constexpr int DIO_ELEVATOR_TOP = 7;
+constexpr int DIO_ELEVATOR_MID = 8; // TODO: assign ports
+constexpr int DIO_ELEVATOR_BOTTOM = 9;
 
 /** # where the pneumatics are plugged in
  * driveGearboxes{pcm0, pch0, pch1};
@@ -69,3 +71,5 @@ constexpr int RIGHT_ULTRASONIC_PING_CHANNEL = 4;
 constexpr int RIGHT_ULTRASONIC_ECHO_CHANNEL = 5;
 
 constexpr bool LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO = true;
+constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kOnboard;
+constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kMXP;

@@ -24,13 +24,34 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
   liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
 
-  lineSensorMid = new frc::DigitalInput(dio4);
+  // lineSensorLeft = new frc::DigitalInput(7);  //  6);//10);
+  // lineSensorMid = new frc::DigitalInput(8);  //  );//11);
+  // lineSensorRight = new frc::DigitalInput(9);  //  (4);//12);
 
-  analogUltrasonic->InitAccumulator();
-  analogUltrasonic->ResetAccumulator();
+  // analogUltrasonicR->InitAccumulator();
+  // analogUltrasonicR->ResetAccumulator();
+  // analogUltrasonicL->InitAccumulator();
+  // analogUltrasonicL->ResetAccumulator();
+ 
+  lineSensorLeft->InitAccumulator();
+  lineSensorLeft->ResetAccumulator();
+  lineSensorMid->InitAccumulator();
+  lineSensorMid->ResetAccumulator();
+  lineSensorRight->InitAccumulator();
+  lineSensorRight->ResetAccumulator();
+  lineSensor2->InitAccumulator();
+  lineSensor2->ResetAccumulator();
+  lineSensornavx4->InitAccumulator();
+  lineSensornavx4->ResetAccumulator();
 
   serialUltrasonic->EnableTermination((char)31);
   serialUltrasonic->Reset();
+
+  leftEnc.SetDistancePerPulse(PULSE_IN);
+  rightEnc.SetDistancePerPulse(PULSE_IN);
+
+  leftEnc.Reset();
+  rightEnc.Reset();
 
   compressor.SetClosedLoopControl(true);
   ShiftGears(Direction::down, driveGearboxes);
@@ -85,6 +106,10 @@ void Robot::AutonomousInit() {
     }
   }
 
+  leftEnc.Reset();
+  rightEnc.Reset();
+
+
 }
 
 void Robot::AutonomousPeriodic() {
@@ -128,10 +153,8 @@ void Robot::TalonInit() {
   l2.Follow(l1);
   r2.Follow(r1);
 
-  l1.SetNeutralMode(NeutralMode::Brake);
-  // l2.SetNeutralMode(NeutralMode::Coast);
-  r1.SetNeutralMode(NeutralMode::Brake);
-  // r2.SetNeutralMode(NeutralMode::Coast); 
+  l1.SetNeutralMode(NeutralMode::Coast);
+  r1.SetNeutralMode(NeutralMode::Coast);
 
 
   // r1.SetSafety
@@ -219,7 +242,6 @@ void Robot::HandleButtons() {
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
 
-
 }
 
 void Robot::GetDistances() {
@@ -233,16 +255,28 @@ void Robot::GetDistances() {
   // frc::SmartDashboard::PutNumber("leftUltrasonicDistance", leftUltrasonicDistance);
   // frc::SmartDashboard::PutNumber("rightUltrasonicDistance", rightUltrasonicDistance);
 
-  int gotValue = analogUltrasonic->GetValue();
-  int gotAverageValue = analogUltrasonic->GetAverageValue();
-  // double gotVoltage = analogUltrasonic->GetVoltage();
-  // double gotAverageVoltage = analogUltrasonic->GetAverageVoltage();
-
+  // int gotValueR = analogUltrasonicR->GetValue();
+  // int gotAverageValueR = analogUltrasonicR->GetAverageValue();
+  // int gotValueL = analogUltrasonicL->GetValue();
+  // int gotAverageValueL = analogUltrasonicL->GetAverageValue();
   
+  
+  // double gotVoltage = analogUltrasonicR->GetVoltage();
+  // double gotAverageVoltage = analogUltrasonicR->GetAverageVoltage();
+
+  frc::SmartDashboard::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
+  frc::SmartDashboard::PutNumber("lineSensorMid", lineSensorMid->GetValue());
+  frc::SmartDashboard::PutNumber("lineSensor2", lineSensor2->GetAverageValue());
+  frc::SmartDashboard::PutNumber("lineSensorRight", lineSensorRight->GetAverageValue());
+  frc::SmartDashboard::PutNumber("lineSensornavx4", lineSensornavx4->GetAverageValue());
 
 
-  frc::SmartDashboard::PutNumber("gotValue", gotValue);
-  frc::SmartDashboard::PutNumber("gotAverageValue", gotAverageValue);
+
+
+  // frc::SmartDashboard::PutNumber("gotValueR", gotValueR);
+  // frc::SmartDashboard::PutNumber("gotAverageValueR", gotAverageValueR);
+  // frc::SmartDashboard::PutNumber("gotValueL", gotValueL);
+  // frc::SmartDashboard::PutNumber("gotAverageValueL", gotAverageValueL);
   // frc::SmartDashboard::PutNumber("gotVoltage", gotVoltage);
   // frc::SmartDashboard::PutNumber("gotAverageVoltage", gotAverageVoltage);
 
@@ -257,26 +291,26 @@ void Robot::GetDistances() {
 }
   
 
-void Approach(double& left, double& right) {
-  // double kP = 1.0;
-  // double kI = 0.0;
-  // double kD = 0.0;
+// void Approach(double& left, double& right) {
+//   // double kP = 1.0;
+//   // double kI = 0.0;
+//   // double kD = 0.0;
 
    
-  // if(currentState == State::LINING_UP) {
-  //   double leftGreater = left - right;
-  //   if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
-  //     if (leftGreater > 0) { // left further away
-  //       // send more to left
-  //       l1.Set(ControlMode::PercentOutput,  leftGreater);
-  //       r1.Set(ControlMode::PercentOutput, -leftGreater);
-  //     } else {
-  //       l1.Set(ControlMode::PercentOutput, -leftGreater);
-  //       r1.Set(ControlMode::PercentOutput,  leftGreater);
-  //     }
-  //   }
-  // }
-}
+//   if(currentState == State::LINING_UP) {
+//     double leftGreater = left - right;
+//     if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
+//       if (leftGreater > 0) { // left further away
+//         // send more to left
+//         l1.Set(ControlMode::PercentOutput,  leftGreater);
+//         r1.Set(ControlMode::PercentOutput, -leftGreater);
+//       } else {
+//         l1.Set(ControlMode::PercentOutput, -leftGreater);
+//         r1.Set(ControlMode::PercentOutput,  leftGreater);
+//       }
+//     }
+//   }
+// }
 
 void LidarInit() {
   
@@ -304,7 +338,13 @@ void Robot::Testing() {
   // frc::SmartDashboard::PutBoolean("should be shifting", \
                                   leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
 
-  // frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
+  // frc::SmartDashboard::PutBoolean("line sensor left", lineSensorLeft->Gete());
+  // frc::SmartDashboard::PutBoolean("line sensor mid", lineSensorMid->Get());
+  // frc::SmartDashboard::PutBoolean("line sensor right", lineSensorRight->Get());
+
+  frc::SmartDashboard::PutNumber("Left Encoder", leftEnc.GetDistance());
+	frc::SmartDashboard::PutNumber("Right Encoder", rightEnc.GetDistance());
+
   
 }
 

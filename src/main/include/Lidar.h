@@ -25,6 +25,13 @@ public:
         frc::Wait(1.);
     }
 
+    Lidar(frc::I2C::Port port) {
+        I2CBus = new frc::I2C(port, Lidar::ADDRESS_DEFAULT);
+        printf("lidar constructed through port constructor");
+        frc::Wait(1.);
+
+    }
+
 	unsigned int AquireDistance(/*Timer m_timer*/) {
         
         unsigned char distance[Lidar::READ_2_REGISTERS];
@@ -42,7 +49,7 @@ public:
         if ( I2CBus->Write(Lidar::COMMAND, Lidar::ACQUIRE_DC_CORRECT) ) {
             printf ( "Write operation failed! line %d\n", __LINE__ ); // initiate distance acquisition with DC stabilization
         } else {
-            printf("write operation succeeded");
+            // printf("write operation succeeded");
         }
 
         // do{frc::Wait(.0001);} while (Busy());
@@ -56,7 +63,9 @@ public:
             // printf("WriteBulk operation succeeded");
             if ( I2CBus->ReadOnly(Lidar::READ_2_REGISTERS, distance)) {
                 printf ( "ReadOnly distance failed! line %d\n", __LINE__ );
-            } else { printf("readonly operation succeeded");}
+            } else { 
+                // printf("readonly operation succeeded");
+            }
         }
 
         unsigned int dist = (unsigned int)(distance[0]<<8) + (unsigned int)(distance[1]);

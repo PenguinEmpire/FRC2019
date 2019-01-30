@@ -69,22 +69,29 @@ class Robot : public frc::TimedRobot {
   DIO* liftTop;
   
   // Line following sensors
-  DIO* lineSensorLeft;
-  DIO* lineSensorMid;
-  DIO* lineSensorRight;
+  // DIO* lineSensorLeft;
+  // DIO* lineSensorMid;
+  // DIO* lineSensorRight;
+  frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
+  frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
+  frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
+  frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
+  frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
 
-  Lidar* leftLidar = new Lidar(LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO);
-  Lidar* rightLidar = new Lidar(!LEFT_LIDAR_NAVX__RIGHT_LIDAR_RIO /* maybe need to put in address */);
+  Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
+  Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
   int lidarDist;
 
-  frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
-  frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
+  // frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
+  // frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
 
   DIO* leftDioUltrasonic;
   DIO* rightDioUltrasonic;
   
   frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
-  frc::AnalogInput* analogUltrasonic = new frc::AnalogInput(0);
+  // frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(1);
+  // frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
+
 
 
   int leftLidarDistance;
@@ -101,7 +108,7 @@ class Robot : public frc::TimedRobot {
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
   WPI_TalonSRX elevatorSRXMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
-  frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM}
+  frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM};
 
   // WPI_TalonSRX test_wpi_talon{0};
 
@@ -117,10 +124,10 @@ class Robot : public frc::TimedRobot {
   frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
   frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
 
-  frc::PIDController straighten = frc::PIDController();
+  // frc::PIDController straighten = frc::PIDController();
 
 
-  //frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
+  frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
 
   void RobotInit() override;
   void RobotPeriodic() override;
