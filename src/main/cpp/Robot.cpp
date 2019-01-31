@@ -245,15 +245,16 @@ void Robot::HandleButtons() {
 }
 
 void Robot::GetDistances() {
-  leftLidarDistance = leftLidar->AquireDistance();
-  rightLidarDistance = rightLidar->AquireDistance();  
-  // leftUltrasonicDistance = leftUltrasonic->GetRangeInches();
-  // rightUltrasonicDistance = rightUltrasonic->GetRangeInches();
+  distances.lidarL = leftLidar->AquireDistance();
+  distances.lidarR = rightLidar->AquireDistance();  
+  // distances.ultrasonicL = leftUltrasonic->GetRangeInches();
+  // distances.ultrasonicR = rightUltrasonic->GetRangeInches();
 
-  frc::SmartDashboard::PutNumber("leftLidarDistance", leftLidarDistance);
-  frc::SmartDashboard::PutNumber("rightLidarDistance", rightLidarDistance);
-  // frc::SmartDashboard::PutNumber("leftUltrasonicDistance", leftUltrasonicDistance);
-  // frc::SmartDashboard::PutNumber("rightUltrasonicDistance", rightUltrasonicDistance);
+  frc::SmartDashboard::PutNumber("leftLidarDistance",  distances.lidarL);
+  frc::SmartDashboard::PutNumber("rightLidarDistance", distances.lidarR);
+
+  // frc::SmartDashboard::PutNumber("leftUltrasonicDistance",  distances.ultrasonicL);
+  // frc::SmartDashboard::PutNumber("rightUltrasonicDistance", distances.ultrasonicR);
 
   // int gotValueR = analogUltrasonicR->GetValue();
   // int gotAverageValueR = analogUltrasonicR->GetAverageValue();
@@ -291,7 +292,7 @@ void Robot::GetDistances() {
 }
   
 
-// void Approach(double& left, double& right) {
+void Approach(double left, double right, double tolerance) {
 //   // double kP = 1.0;
 //   // double kI = 0.0;
 //   // double kD = 0.0;
@@ -310,7 +311,12 @@ void Robot::GetDistances() {
 //       }
 //     }
 //   }
-// }
+
+
+  if (left - right > tolerance) {
+    
+  }
+}
 
 void LidarInit() {
   

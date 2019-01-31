@@ -55,8 +55,6 @@ class Robot : public frc::TimedRobot {
 */
 
   // # OFFBOARD #
-  PenguinJoystick p_joy1;
-
   frc::Joystick leftJoystick = frc::Joystick(usb0);
   frc::Joystick rightJoystick = frc::Joystick(usb1);
   frc::Joystick gamerJoystick = frc::Joystick(usb2);
@@ -82,22 +80,22 @@ class Robot : public frc::TimedRobot {
   Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
   int lidarDist;
 
+//  ## ULTRASONICS ##
   // frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
   // frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
-
-  DIO* leftDioUltrasonic;
-  DIO* rightDioUltrasonic;
-  
-  frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
+  // DIO* leftDioUltrasonic;
+  // DIO* rightDioUltrasonic;
+  // frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
   // frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(1);
   // frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
 
+  struct distance {
+    int lidarL;
+    int lidarR;
+    int ultrasonicL;
+    int ultrasonicR; 
+  } distances;
 
-
-  int leftLidarDistance;
-  int rightLidarDistance;
-  int leftUltrasonicDistance;
-  int rightUltrasonicDistance;
 
   // MOTOR CONTROLLERS
   // Talons
@@ -107,7 +105,7 @@ class Robot : public frc::TimedRobot {
   WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
-  WPI_TalonSRX elevatorSRXMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
+  WPI_TalonSRX elevatorTalonMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
   frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM};
 
   // WPI_TalonSRX test_wpi_talon{0};
