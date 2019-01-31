@@ -205,7 +205,7 @@ void Robot::HandleButtons() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
 
-  elevatorMotor.Set(gamerJoystick.GetRawAxis(3) * 1);//0.2);
+  elevatorMotor.Set(gamerJoystick.GetRawAxis(3) *  1);//0.2);
   intakeMotor.Set(-gamerJoystick.GetRawAxis(1) * 0.2);
 
 
