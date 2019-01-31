@@ -32,15 +32,17 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   } currentGear = down;
 
-  // unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = { \
-  //     {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, \
-  //     {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, \
+  unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = { \
+      {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, \
+      {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, \
+  };
+
+  // unordered_map<bool, frc::DoubleSolenoid::Value> reverseStates = { \
+  //     {false, frc::DoubleSolenoid::kForward}, \
+  //     {true, frc::DoubleSolenoid::kReverse}, \
   // };
 
-  unordered_map<bool, frc::DoubleSolenoid::Value> reverseStates = { \
-      {false, frc::DoubleSolenoid::kForward}, \
-      {true, frc::DoubleSolenoid::kReverse}, \
-  };
+
   enum State {
       UNINITIALIZED,
       LINING_UP,

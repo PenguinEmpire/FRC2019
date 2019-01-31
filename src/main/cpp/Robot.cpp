@@ -24,6 +24,10 @@ void Robot::RobotInit() {
   // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
   // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
 
+  bool compressorEnabled = compressor.Enabled();
+	bool pressureStatus = compressor.GetPressureSwitchValue();
+	double current = compressor.GetCompressorCurrent();
+
   compressor.SetClosedLoopControl(true);
   ShiftGears(Direction::down, driveGearboxes);
   intakeArm.Set(frc::DoubleSolenoid::  kReverse);
@@ -293,10 +297,10 @@ void Robot::Testing() {
   // frc::SmartDashboard::PutBoolean("line sensor", lineSensorMid->Get());
   frc::SmartDashboard::PutBoolean("compressor switch value", compressor.GetPressureSwitchValue());
   frc::SmartDashboard::PutBoolean("compressor enabled", compressor.Enabled());
-  frc::SmartDashboard::PutBoolean("compressor enabled", compressor.GetClosedLoopControl());
+  frc::SmartDashboard::PutBoolean("compressor : closed loop control", compressor.GetClosedLoopControl());
   frc::SmartDashboard::PutNumber("compressor current draw", compressor.GetCompressorCurrent());
   frc::SmartDashboard::PutBoolean("compressor not connected sticky", compressor.GetCompressorNotConnectedStickyFault());
-  frc::SmartDashboard::PutBoolean("compressor not connected sticky", compressor.GetCompressorNotConnectedFault());
+  frc::SmartDashboard::PutBoolean("compressor not connected ", compressor.GetCompressorNotConnectedFault());
   
 }
 
