@@ -122,7 +122,7 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
-  HandleButtons();
+  HandleJoysticks();
   // Move();
   RunElevator();
 }
@@ -159,26 +159,47 @@ void Robot::DriveBoth(double amount) {
   DriveLeft (amount);
   DriveRight(amount);
 }
-void Robot::Move() {
+void Robot::HandleJoysticks() {
   double left = leftJoystick.GetRawAxis(1);
   double right = rightJoystick.GetRawAxis(1);
-  frc::SmartDashboard::PutNumber("left joy", left);
-  frc::SmartDashboard::PutNumber("right joy", right);
-
   double both;
 
-  if(fabs(left - right) < leftJoystick.GetRawAxis(3)) {
-    both = (left + right) / 2;
-    DriveBoth (calculateDampenedJoystick(both ));
+  double toleranceScalar = ((leftJoystick.GetRawAxis(3) + 1) / 2);
+  int ultraTol = 240 * toleranceScalar;
+  int lidarTol =  80 * toleranceScalar;
+  frc::SmartDashboard::PutNumber("ultraTol", ultraTol);
+  frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
+
+  if (leftJoystick.GetRawButton(3)) {
+    Approach(distances.ultrasonicL, distances.ultrasonicR, ultraTol);
+    frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
+  } else if (leftJoystick.GetRawButton(4)) {
+    Approach(distances.lidarL, distances.lidarR, lidarTol);
+    frc::SmartDashboard::PutBoolean("appr-lidar", true);
   } else {
-    DriveLeft (calculateDampenedJoystick(left ));
-    DriveRight(calculateDampenedJoystick(right));
+    frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
+    frc::SmartDashboard::PutBoolean("appr-lidar", false);
+
+    // Joystick Inputs
+    if(fabs(left - right) < leftJoystick.GetRawAxis(3)) {
+      both = (left + right) / 2;
+      DriveBoth (calculateDampenedJoystick(both ));
+    } else {
+      DriveLeft (calculateDampenedJoystick(left ));
+      DriveRight(calculateDampenedJoystick(right));
+    }
   }
+
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
+  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
+  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
+  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
+
 }
 
 void Robot::RunElevator() {
   double val = gamerJoystick.GetRawAxis(3); // right joy, up/down
-  elevatorSparkMotor.Set(val * 0.2);
+  elevatorSparkMotor.Set(gamerJoystick.GetRawAxis(3)  * 0.2);
 }
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
@@ -228,43 +249,6 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
   ShiftGears(state, solenoid);
 }
 
-void Robot::HandleButtons() {
-  ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
-
-  int ultraTol = 120 * 2 * ((leftJoystick.GetRawAxis(3) + 1) / 2);
-  int lidarTol = 40  * 2 * ((leftJoystick.GetRawAxis(3) + 1) / 2);
-  frc::SmartDashboard::PutNumber("ultraTol", ultraTol);
-  frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
-
-  if (leftJoystick.GetRawButton(3)) {
-    Approach(distances.ultrasonicL, distances.ultrasonicR, ultraTol);
-    frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
-  } else if (leftJoystick.GetRawButton(4)) {
-    Approach(distances.lidarL, distances.lidarR, lidarTol);
-/*    if (distances.lidarL - distances.lidarR > lidarTol) {
-      frc::SmartDashboard::PutBoolean("lidar left", true);
-      frc::SmartDashboard::PutBoolean("lidar false", false);
-      DriveLeft (backward);
-      DriveRight(forward );
-    } else if (distances.lidarR - distances.lidarL > lidarTol) {
-      frc::SmartDashboard::PutBoolean("lidar left", false);
-      frc::SmartDashboard::PutBoolean("lidar false", true);
-      DriveRight(backward);
-      DriveLeft (forward );
-    } else {
-      DriveBoth(0.0);
-    }
-*/
-    frc::SmartDashboard::PutBoolean("appr-lidar", true);
-  } else {
-    frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
-    frc::SmartDashboard::PutBoolean("appr-lidar", false);
-    DriveBoth(0.0);
-  }
-}
 
 void Robot::GetDistances() {
   distances.lidarL = leftLidar->AquireDistance();

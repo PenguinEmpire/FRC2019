@@ -141,8 +141,6 @@ class Robot : public frc::TimedRobot {
   void ToggleSolenoid(bool btn, frc::DoubleSolenoid& solenoid);
   void ToggleSolenoid(frc::DoubleSolenoid& Solenoid);
 
-  void HandleButtons();
-
   void GetDistances();
   void Approach(int left, int right, int tolerance);
   void LidarInit();
@@ -150,7 +148,7 @@ class Robot : public frc::TimedRobot {
   void DriveLeft(double amount);
   void DriveRight(double amount);
   void DriveBoth(double amount);
-  void Move(); //TODO: better name
+  void HandleJoysticks(); //TODO: better name
   void RunElevator();
 
 
