@@ -70,7 +70,7 @@ public:
 
         unsigned int dist = (unsigned int)(distance[0]<<8) + (unsigned int)(distance[1]);
 
-        printf("distance %d\n", dist);
+        // printf("distance %d\n", dist);
         // printf("Time =  %f, Distance= %d (0x%0x)\n", m_timer->Get(), dist, dist);
         return dist;
     };

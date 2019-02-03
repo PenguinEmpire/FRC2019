@@ -44,10 +44,10 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
 
-constexpr int LEFT_1_CAN_ADDRESS =  0;
-constexpr int LEFT_2_CAN_ADDRESS =  1;
+constexpr int LEFT_1_CAN_ADDRESS =  3;
+constexpr int LEFT_2_CAN_ADDRESS =  0;
 constexpr int RIGHT_1_CAN_ADDRESS = 2;
-constexpr int RIGHT_2_CAN_ADDRESS = 3;
+constexpr int RIGHT_2_CAN_ADDRESS = 1;
  
 constexpr int INTAKE_MOTOR_PWM_PORT = pwm0;
 constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = can4;

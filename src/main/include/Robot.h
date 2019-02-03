@@ -70,15 +70,14 @@ class Robot : public frc::TimedRobot {
   // DIO* lineSensorLeft;
   // DIO* lineSensorMid;
   // DIO* lineSensorRight;
-  frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
-  frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
-  frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
-  frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
-  frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
+  // frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
+  // frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
+  // frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
+  // frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
+  // frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
 
   Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
   Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
-  int lidarDist;
 
 //  ## ULTRASONICS ##
   // frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
@@ -86,8 +85,8 @@ class Robot : public frc::TimedRobot {
   // DIO* leftDioUltrasonic;
   // DIO* rightDioUltrasonic;
   // frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
-  // frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(1);
-  // frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
+  frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(1);
+  frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
 
   struct distance {
     int lidarL;
@@ -108,9 +107,8 @@ class Robot : public frc::TimedRobot {
   WPI_TalonSRX elevatorTalonMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
   frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM};
 
-  // WPI_TalonSRX test_wpi_talon{0};
 
-  frc::DifferentialDrive drive{l1, r1};
+  // frc::DifferentialDrive drive{l1, r1};
 
   // OTHER
 
@@ -146,7 +144,7 @@ class Robot : public frc::TimedRobot {
   void HandleButtons();
 
   void GetDistances();
-  void Approach();
+  void Approach(int left, int right, int tolerance);
   void LidarInit();
 
   void DriveLeft(double amount);
