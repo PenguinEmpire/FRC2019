@@ -20,7 +20,7 @@
 
 #include "ctre/Phoenix.h"
 #include "AHRS.h"
-// #include "pathfinder.h"
+#include "pathfinder.h"
 
 using std::unordered_map;
 typedef frc::DigitalInput DIO;
@@ -142,7 +142,7 @@ class Robot : public frc::TimedRobot {
   void ToggleSolenoid(frc::DoubleSolenoid& Solenoid);
 
   void GetDistances();
-  void Approach(int left, int right, int tolerance);
+  void Align(int left, int right, int tolerance);
   void LidarInit();
 
   void DriveLeft(double amount);

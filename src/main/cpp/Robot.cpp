@@ -127,9 +127,7 @@ void Robot::TeleopPeriodic() {
   RunElevator();
 }
 
-void Robot::TestPeriodic() {
-//   Testing();
-}
+void Robot::TestPeriodic() {}
 
 //--------------------------
 
@@ -144,7 +142,6 @@ void Robot::TalonInit() {
 
   l1.SetNeutralMode(NeutralMode::Brake);
   r1.SetNeutralMode(NeutralMode::Brake);
-
 
   // r1.SetSafety
 }
@@ -171,10 +168,10 @@ void Robot::HandleJoysticks() {
   frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
 
   if (leftJoystick.GetRawButton(3)) {
-    Approach(distances.ultrasonicL, distances.ultrasonicR, ultraTol);
+    Align(distances.ultrasonicL, distances.ultrasonicR, ultraTol);
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
   } else if (leftJoystick.GetRawButton(4)) {
-    Approach(distances.lidarL, distances.lidarR, lidarTol);
+    Align(distances.lidarL, distances.lidarR, lidarTol);
     frc::SmartDashboard::PutBoolean("appr-lidar", true);
   } else {
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
@@ -253,41 +250,14 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
 void Robot::GetDistances() {
   distances.lidarL = leftLidar->AquireDistance();
   distances.lidarR = rightLidar->AquireDistance();  
+
   // distances.ultrasonicL = leftUltrasonic->GetRangeInches();
   // distances.ultrasonicR = rightUltrasonic->GetRangeInches();
-
-  // frc::SmartDashboard::PutNumber("leftUltrasonicDistance",  distances.ultrasonicL);
-  // frc::SmartDashboard::PutNumber("rightUltrasonicDistance", distances.ultrasonicR);
-
-  // int gotValueR = analogUltrasonicR->GetValue();
-  // int gotAverageValueR = analogUltrasonicR->GetAverageValue();
-  // int gotValueL = analogUltrasonicL->GetValue();
-  // int gotAverageValueL = analogUltrasonicL->GetAverageValue();
-  
   distances.ultrasonicL = analogUltrasonicL->GetAverageValue();
   distances.ultrasonicR = analogUltrasonicR->GetAverageValue();
-
-  // double gotVoltage = analogUltrasonicR->GetVoltage();
-  // double gotAverageVoltage = analogUltrasonicR->GetAverageVoltage();
-
-  // frc::SmartDashboard::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
-  // frc::SmartDashboard::PutNumber("lineSensorMid", lineSensorMid->GetValue());
-  // frc::SmartDashboard::PutNumber("lineSensor2", lineSensor2->GetAverageValue());
-  // frc::SmartDashboard::PutNumber("lineSensorRight", lineSensorRight->GetAverageValue());
-  // frc::SmartDashboard::PutNumber("lineSensornavx4", lineSensornavx4->GetAverageValue());
-
-  frc::SmartDashboard::PutNumber("dist.ultraR", distances.ultrasonicR);
-  frc::SmartDashboard::PutNumber("dist.ultraL", distances.ultrasonicL);
-  frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
-  frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
-
-
-  // frc::SmartDashboard::PutNumber("gotValueR", gotValueR);
-  // frc::SmartDashboard::PutNumber("gotAverageValueR", gotAverageValueR);
-  // frc::SmartDashboard::PutNumber("gotValueL", gotValueL);
-  // frc::SmartDashboard::PutNumber("gotAverageValueL", gotAverageValueL);
-  // frc::SmartDashboard::PutNumber("gotVoltage", gotVoltage);
-  // frc::SmartDashboard::PutNumber("gotAverageVoltage", gotAverageVoltage);
+  // int gotValueR = analogUltrasonicR->GetValue();
+  // int gotValueL = analogUltrasonicL->GetValue();
+  
 
   // int bytesReceived = serialUltrasonic->GetBytesReceived();
   // char buffer[bytesReceived];
@@ -300,32 +270,20 @@ void Robot::GetDistances() {
 }
   
 
-void Robot::Approach(int left, int right, int tolerance) {
-//   // double kP = 1.0;
-//   // double kI = 0.0;
-//   // double kD = 0.0;
+void Robot::Align(int left, int right, int tolerance) {
+  // double kP = 1.0;
+  // double kI = 0.0;
+  // double kD = 0.0;
 
-//   if(currentState == State::LINING_UP) {
-//     double leftGreater = left - right;
-//     if(fabs(leftGreater) > 1 /* Parallel tolerance */) {
-//       if (leftGreater > 0) { // left further away
-//         // send more to left
-//         l1.Set(ControlMode::PercentOutput,  leftGreater);
-//         r1.Set(ControlMode::PercentOutput, -leftGreater);
-//       } else {
-//         l1.Set(ControlMode::PercentOutput, -leftGreater);
-//         r1.Set(ControlMode::PercentOutput,  leftGreater);
-//       }
-//     }
-//   }
-
-  double forward  = - 0.5;
+  double forward  = -(+0.5);
   double backward = -(-0.5);
 
-  if (left - right > tolerance) {
+  // (20, 120) and (200, 900)
+
+  if (left - right - tolerance > 0) {
     DriveLeft (forward );
-    DriveRight(backward);
-  } else if (right - left > tolerance) {
+    DriveRight(backward); 
+  } else if (right - left - tolerance > 0) {
     DriveRight(forward );
     DriveLeft (backward);
   } else {
@@ -333,9 +291,7 @@ void Robot::Approach(int left, int right, int tolerance) {
   }
 }
 
-void Robot::LidarInit() {
-  
-}
+void Robot::LidarInit() {}
 
 
 double Robot::calculateDampenedJoystick(double rawAxisValue) {
@@ -359,12 +315,23 @@ void Robot::Testing() {
   // frc::SmartDashboard::PutBoolean("should be shifting", \
                                   leftJoystick.GetRawButton(6) || leftJoystick.GetRawButton(4));
 
-  // frc::SmartDashboard::PutBoolean("line sensor left", lineSensorLeft->Gete());
+  // frc::SmartDashboard::PutBoolean("line sensor left", lineSensorLeft->Get());
   // frc::SmartDashboard::PutBoolean("line sensor mid", lineSensorMid->Get());
   // frc::SmartDashboard::PutBoolean("line sensor right", lineSensorRight->Get());
 
   // frc::SmartDashboard::PutNumber("Left Encoder", leftEnc.GetDistance());
 	// frc::SmartDashboard::PutNumber("Right Encoder", rightEnc.GetDistance());
+
+  // frc::SmartDashboard::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
+  // frc::SmartDashboard::PutNumber("lineSensorMid", lineSensorMid->GetValue());
+  // frc::SmartDashboard::PutNumber("lineSensor2", lineSensor2->GetAverageValue());
+  // frc::SmartDashboard::PutNumber("lineSensorRight", lineSensorRight->GetAverageValue());
+  // frc::SmartDashboard::PutNumber("lineSensornavx4", lineSensornavx4->GetAverageValue());
+
+  frc::SmartDashboard::PutNumber("dist.ultraR", distances.ultrasonicR);
+  frc::SmartDashboard::PutNumber("dist.ultraL", distances.ultrasonicL);
+  frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
+  frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
 
   
 }
