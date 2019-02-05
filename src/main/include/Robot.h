@@ -42,6 +42,10 @@ class Robot : public frc::TimedRobot {
       LINING_UP,
   } currentState = UNINITIALIZED;
 
+  enum DistanceType {
+    lidar, ultrasonic
+  }
+
 /*   struct pneumatic {
     frc::DoubleSolenoid solenoid;
     Robot::Direction currentDir;

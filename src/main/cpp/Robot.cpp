@@ -168,10 +168,10 @@ void Robot::HandleJoysticks() {
   frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
 
   if (leftJoystick.GetRawButton(3)) {
-    Align(distances.ultrasonicL, distances.ultrasonicR, ultraTol);
+    Align(distances.ultrasonicL, distances.ultrasonicR, ultraTol, DistanceType::ultrasonic);
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
   } else if (leftJoystick.GetRawButton(4)) {
-    Align(distances.lidarL, distances.lidarR, lidarTol);
+    Align(distances.lidarL, distances.lidarR, lidarTol, DistanceType::lidar);
     frc::SmartDashboard::PutBoolean("appr-lidar", true);
   } else {
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
@@ -270,22 +270,36 @@ void Robot::GetDistances() {
 }
   
 
-void Robot::Align(int left, int right, int tolerance) {
+void Robot::Align(int left, int right, int tolerance, DistanceType type) {
   // double kP = 1.0;
   // double kI = 0.0;
   // double kD = 0.0;
 
+  double dif = left - right;
+
   double forward  = -(+0.5);
   double backward = -(-0.5);
 
+  // int newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+
   // (20, 120) and (200, 900)
+  // left-right
+  // 120-20 -- 20-120 = 100 - -100
+  // 700 -- -700
+
+  int go;
+  if (type == lidar) {
+    go = (dif - (120-20) ) / ((20-120) - (120-20) ) * (-0.85 - 0.85) + 0.85;
+  } else if (type == ultrasonic) {
+    go = (dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
+  };
 
   if (left - right - tolerance > 0) {
-    DriveLeft (forward );
-    DriveRight(backward); 
+    DriveLeft ( go);
+    DriveRight(-go); 
   } else if (right - left - tolerance > 0) {
-    DriveRight(forward );
-    DriveLeft (backward);
+    DriveLeft (-go);
+    DriveRight( go);
   } else {
     DriveBoth(0.0);
   }
