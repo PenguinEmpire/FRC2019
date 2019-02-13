@@ -1,4 +1,4 @@
-/*----------------------------------------------------------------------------*/
+ /*----------------------------------------------------------------------------*/
 /* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
 /* Open Source Software - may be modified and shared by FRC teams. The code   */
 /* must be accompanied by the FIRST BSD license file in the root directory of */
@@ -24,25 +24,13 @@ void Robot::RobotInit() {
   liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
   liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
 
-  // lineSensorLeft = new frc::DigitalInput(7);  //  6);//10);
-  // lineSensorMid = new frc::DigitalInput(8);  //  );//11);
-  // lineSensorRight = new frc::DigitalInput(9);  //  (4);//12);
 
   analogUltrasonicR->InitAccumulator();
   analogUltrasonicR->ResetAccumulator();
   analogUltrasonicL->InitAccumulator();
   analogUltrasonicL->ResetAccumulator();
  
-  // lineSensorLeft->InitAccumulator();
-  // lineSensorLeft->ResetAccumulator();
-  // lineSensorMid->InitAccumulator();
-  // lineSensorMid->ResetAccumulator();
-  // lineSensorRight->InitAccumulator();
-  // lineSensorRight->ResetAccumulator();
-  // lineSensor2->InitAccumulator();
-  // lineSensor2->ResetAccumulator();
-  // lineSensornavx4->InitAccumulator();
-  // lineSensornavx4->ResetAccumulator();
+  // LineSensorInit();
 
   // serialUltrasonic->EnableTermination((char)31);
   // serialUltrasonic->Reset();
@@ -105,6 +93,8 @@ void Robot::AutonomousInit() {
   leftEnc.Reset();
   rightEnc.Reset();
 
+  ahrs->Reset();;\
+
 
 }
 
@@ -117,14 +107,16 @@ void Robot::AutonomousPeriodic() {
     }
   }
 
+
 }
 
 void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
   HandleJoysticks();
-  // Move();
   RunElevator();
+
+  encTest.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(3));
 }
 
 void Robot::TestPeriodic() {}
@@ -133,9 +125,9 @@ void Robot::TestPeriodic() {}
 
 void Robot::TalonInit() {
   l1.SetInverted(true);
-  l2.SetInverted(true);
+  // l2.SetInverted(true);
   r1.SetInverted(false); 
-  r2.SetInverted(false);
+  // r2.SetInverted(false);
 
   // l2.Follow(l1);
   // r2.Follow(r1);
@@ -144,6 +136,23 @@ void Robot::TalonInit() {
   r1.SetNeutralMode(NeutralMode::Brake);
 
   // r1.SetSafety
+}
+
+void Robot::LineSensorInit() {
+  // lineSensorLeft = new frc::DigitalInput(7);  //  6);//10);
+  // lineSensorMid = new frc::DigitalInput(8);  //  );//11);
+  // lineSensorRight = new frc::DigitalInput(9);  //  (4);//12);
+  
+  // lineSensorLeft->InitAccumulator();
+  // lineSensorLeft->ResetAccumulator();
+  // lineSensorMid->InitAccumulator();
+  // lineSensorMid->ResetAccumulator();
+  // lineSensorRight->InitAccumulator();
+  // lineSensorRight->ResetAccumulator();
+  // lineSensor2->InitAccumulator();
+  // lineSensor2->ResetAccumulator();
+  // lineSensornavx4->InitAccumulator();
+  // lineSensornavx4->ResetAccumulator();
 }
 
 void Robot::DriveLeft(double amount) {
@@ -161,7 +170,7 @@ void Robot::HandleJoysticks() {
   double right = rightJoystick.GetRawAxis(1);
   double both;
 
-  double toleranceScalar = ((leftJoystick.GetRawAxis(3) + 1) / 2);
+  toleranceScalar = ((leftJoystick.GetRawAxis(3) + 1) / 2);
   int ultraTol = 240 * toleranceScalar;
   int lidarTol =  80 * toleranceScalar;
   frc::SmartDashboard::PutNumber("ultraTol", ultraTol);
@@ -173,11 +182,16 @@ void Robot::HandleJoysticks() {
   } else if (leftJoystick.GetRawButton(4)) {
     Align(distances.lidarL, distances.lidarR, lidarTol, DistanceType::lidar);
     frc::SmartDashboard::PutBoolean("appr-lidar", true);
+  } else if (leftJoystick.GetRawButton(5)) {
+    GetLimelight();
+    DriveLeft ( left_command * -0.7);
+    DriveRight(right_command * -0.7);
+
   } else {
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
     frc::SmartDashboard::PutBoolean("appr-lidar", false);
 
-    // Joystick Inputs
+    // Joystick Inputs for driving
     if(fabs(left - right) < leftJoystick.GetRawAxis(3)) {
       both = (left + right) / 2;
       DriveBoth (calculateDampenedJoystick(both ));
@@ -248,17 +262,21 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
 
 
 void Robot::GetDistances() {
+  // LIDAR
   distances.lidarL = leftLidar->AquireDistance();
   distances.lidarR = rightLidar->AquireDistance();  
 
+  // ULTRASONIC
+  //   ultrasonic class
   // distances.ultrasonicL = leftUltrasonic->GetRangeInches();
   // distances.ultrasonicR = rightUltrasonic->GetRangeInches();
+  //   analoginput class
   distances.ultrasonicL = analogUltrasonicL->GetAverageValue();
   distances.ultrasonicR = analogUltrasonicR->GetAverageValue();
   // int gotValueR = analogUltrasonicR->GetValue();
   // int gotValueL = analogUltrasonicL->GetValue();
   
-
+/* serial ultrasonic class
   // int bytesReceived = serialUltrasonic->GetBytesReceived();
   // char buffer[bytesReceived];
   // int readBytes = serialUltrasonic->Read(buffer, bytesReceived);
@@ -266,11 +284,71 @@ void Robot::GetDistances() {
   // frc::SmartDashboard::PutNumber("bytesReceived", bytesReceived);
   // frc::SmartDashboard::PutRaw("buffer", buffer);
   // frc::SmartDashboard::PutNumber("readBytes", readBytes);
-
+*/
 }
+
+void Robot::GetLimelight() {
+  double targetOffsetAngle_Horizontal = limelight->GetNumber("tx", 0.0);
+  double targetOffsetAngle_Vertical = limelight->GetNumber("ty", 0.0);
+  double targetArea = limelight->GetNumber("ta", 0.0);
+  double targetSkew = limelight->GetNumber("ts", 0.0);
+
+  /** ESTIMATING DISTANCE
+   * d = (h2-h1) / tan(a1+a2)
+   * where
+   *  h2 = height of target
+   *  h1 = height of camera lens
+   *  a1 = angle of the camera above the ground
+   *  a2 = y angle to the target (get from limelight)
+   * see http://docs.limelightvision.io/en/latest/cs_estimating_distance.html#using-a-fixed-angle-camera
+   */
+  //
+
+/* copied from them
+  float KpAim = -0.1f;
+  float KpDistance = -0.1f;
+  float min_aim_command = 0.05f;
+
+  float tx = limelight->GetNumber("tx", 0.0);
+  float ty = limelight->GetNumber("ty", 0.0);
+
+  float heading_error  = -tx;
+  float distance_error = -ty;
+  float steering_adjust = 0.0f;
+
+  if (tx > 1.0) {
+    steering_adjust = KpAim * heading_error - min_aim_command;
+  } else if (tx < 1.0) {
+    steering_adjust = KpAim * heading_error + min_aim_command;
+  }
+
+  float distance_adjust = KpDistance * distance_error;
+
+  left_command  += steering_adjust + distance_adjust;
+  right_command -= steering_adjust + distance_adjust;
+  frc::SmartDashboard::PutNumber("left_command", left_command);
+  frc::SmartDashboard::PutNumber("right_command", right_command);
+*/
+
+  float tx = limelight->GetNumber("tx", 0.0);
+  float ty = limelight->GetNumber("ty", 0.0);
+
+  double P_align = 0.15 * toleranceScalar;
+  left_command  = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
+  right_command = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
+
+  // double temp = left_command;
+  // left_command = right_command;
+  // right_command = temp;
   
 
-void Robot::Align(int left, int right, int tolerance, DistanceType type) {
+  frc::SmartDashboard::PutNumber("left_command", left_command);
+  frc::SmartDashboard::PutNumber("right_command", right_command);
+  frc::SmartDashboard::PutNumber("P_align", P_align);
+
+}  
+
+void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) {
   // double kP = 1.0;
   // double kI = 0.0;
   // double kD = 0.0;
@@ -287,22 +365,30 @@ void Robot::Align(int left, int right, int tolerance, DistanceType type) {
   // 120-20 -- 20-120 = 100 - -100
   // 700 -- -700
 
-  int go;
+  double go;
   if (type == lidar) {
-    go = (dif - (120-20) ) / ((20-120) - (120-20) ) * (-0.85 - 0.85) + 0.85;
+    go = linearMap(dif, -100, 100, 0.85, -0.85);
   } else if (type == ultrasonic) {
-    go = (dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
+    go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
   };
 
-  if (left - right - tolerance > 0) {
+  frc::SmartDashboard::PutNumber("dis| go", go);
+  frc::SmartDashboard::PutNumber("dis| dif", dif);
+
+  if (fabs(dif) > tolerance) {
     DriveLeft ( go);
-    DriveRight(-go); 
-  } else if (right - left - tolerance > 0) {
-    DriveLeft (-go);
-    DriveRight( go);
-  } else {
-    DriveBoth(0.0);
+    DriveRight(-go);
   }
+
+  // if (left - right  > tolerance) {
+  //   DriveLeft ( go);
+  //   DriveRight(-go); 
+  // } else if (right - left > tolerance) {
+  //   DriveLeft (-go);
+  //   DriveRight( go);
+  // } else {
+  //   DriveBoth(0.0);
+  // }
 }
 
 void Robot::LidarInit() {}
@@ -319,6 +405,11 @@ double Robot::calculateDampenedJoystick(double rawAxisValue) {
   }
   return dampening * rawAxisValue;
 }
+
+double Robot::linearMap(double n, double start1, double stop1, double start2, double stop2) {
+  /* double newval = */ return (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+}
+
 
 void Robot::Testing() {
   // bool gotTopButton = leftJoystick.GetTop(); 
@@ -346,7 +437,23 @@ void Robot::Testing() {
   frc::SmartDashboard::PutNumber("dist.ultraL", distances.ultrasonicL);
   frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
   frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
-
+  
+  frc::SmartDashboard::PutNumber( "ahrs->GetPitch()                ", ahrs->GetPitch()                );
+  frc::SmartDashboard::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );
+  frc::SmartDashboard::PutNumber( "ahrs->GetYaw()                  ", ahrs->GetYaw()                  );
+  frc::SmartDashboard::PutBoolean("ahrs->IsCalibrating()           ", ahrs->IsCalibrating()           );
+  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelX()    ", ahrs->GetWorldLinearAccelX()    );
+  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelY()    ", ahrs->GetWorldLinearAccelY()    );
+  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelZ()    ", ahrs->GetWorldLinearAccelZ()    );
+  frc::SmartDashboard::PutBoolean("ahrs->IsMoving()                ", ahrs->IsMoving()                );
+  frc::SmartDashboard::PutBoolean("ahrs->IsRotating()              ", ahrs->IsRotating()              );
+  frc::SmartDashboard::PutBoolean("ahrs->IsMagnetometerCalibrated()", ahrs->IsMagnetometerCalibrated());
+  frc::SmartDashboard::PutNumber( "ahrs->GetAngle()                ", ahrs->GetAngle()                );
+  frc::SmartDashboard::PutNumber( "ahrs->GetRate()                 ", ahrs->GetRate()                 );
+  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
+  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
+  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
+  
   
 }
 

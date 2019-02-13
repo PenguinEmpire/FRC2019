@@ -13,6 +13,9 @@
 #include <frc/TimedRobot.h> 
 #include <frc/smartdashboard/SendableChooser.h>
 #include <frc/WPILib.h>
+#include "networktables/NetworkTable.h"
+#include "networktables/NetworkTableEntry.h"
+#include "networktables/NetworkTableInstance.h"
 
 #include "PenguinConstants.h"
 #include "PenguinJoystick.h"
@@ -44,7 +47,7 @@ class Robot : public frc::TimedRobot {
 
   enum DistanceType {
     lidar, ultrasonic
-  }
+  };
 
 /*   struct pneumatic {
     frc::DoubleSolenoid solenoid;
@@ -58,8 +61,15 @@ class Robot : public frc::TimedRobot {
   };
 */
 
+  nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
+  std::shared_ptr<NetworkTable> limelight = inst.GetTable("limelight");
+
+  double left_command  = 0.0;
+  double right_command = 0.0;
+  double toleranceScalar;
+
   // # OFFBOARD #
-  frc::Joystick leftJoystick = frc::Joystick(usb0);
+  frc::Joystick leftJoystick  = frc::Joystick(usb0);
   frc::Joystick rightJoystick = frc::Joystick(usb1);
   frc::Joystick gamerJoystick = frc::Joystick(usb2);
 
@@ -96,16 +106,19 @@ class Robot : public frc::TimedRobot {
     int lidarL;
     int lidarR;
     int ultrasonicL;
-    int ultrasonicR; 
-  } distances;
+    int ultrasonicR;
+    double left;
+    double right;
+  } distances, limelightDist;
 
 
   // MOTOR CONTROLLERS
   // Talons
   WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
-  WPI_TalonSRX l2{LEFT_2_CAN_ADDRESS};
+  // WPI_TalonSRX l2{LEFT_2_CAN_ADDRESS};
   WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
-  WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
+  // WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
+  WPI_TalonSRX encTest{1};
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
   WPI_TalonSRX elevatorTalonMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
@@ -138,6 +151,7 @@ class Robot : public frc::TimedRobot {
   void TestPeriodic() override;
 
   void TalonInit();
+  void LineSensorInit();
 
   void ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid);
   void ShiftGears(frc::DoubleSolenoid::Value state, frc::DoubleSolenoid& solenoid);
@@ -146,8 +160,9 @@ class Robot : public frc::TimedRobot {
   void ToggleSolenoid(frc::DoubleSolenoid& Solenoid);
 
   void GetDistances();
-  void Align(int left, int right, int tolerance);
+  void Align(int left, int right, int tolerance, Robot::DistanceType type);
   void LidarInit();
+  void GetLimelight();
 
   void DriveLeft(double amount);
   void DriveRight(double amount);
@@ -159,6 +174,7 @@ class Robot : public frc::TimedRobot {
 
   // Utils:
   double calculateDampenedJoystick(double rawAxisValue);
+  double linearMap(double n, double start1, double stop1, double start2, double stop2);
 
   void Testing();
 
