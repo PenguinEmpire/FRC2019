@@ -20,10 +20,10 @@ void Robot::RobotInit() {
   //-----------------------------------------------------------------------------------
 
   //Object Initialization
-  liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
-  liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
-  liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
-
+  // liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
+  // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
+  // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
+  elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
 
   analogUltrasonicR->InitAccumulator();
   analogUltrasonicR->ResetAccumulator();
@@ -48,7 +48,7 @@ void Robot::RobotInit() {
   // hatchPusher.Set(frc::DoubleSolenoid::kReverse);
 
   TalonInit();
-  elevatorSparkMotor.SetInverted(false); // TODO
+  // elevator.SetInverted(false); // TODO
   intakeMotor.SetInverted(false); // TODO
 }
 
@@ -93,7 +93,9 @@ void Robot::AutonomousInit() {
   leftEnc.Reset();
   rightEnc.Reset();
 
-  ahrs->Reset();;\
+  ahrs->Reset();
+
+  ;;;;;;;;
 
 
 }
@@ -115,8 +117,6 @@ void Robot::TeleopInit() {}
 void Robot::TeleopPeriodic() {
   HandleJoysticks();
   RunElevator();
-
-  encTest.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(3));
 }
 
 void Robot::TestPeriodic() {}
@@ -129,16 +129,18 @@ void Robot::TalonInit() {
   r1.SetInverted(false); 
   // r2.SetInverted(false);
 
-  // l2.Follow(l1);
-  // r2.Follow(r1);
+  l2.Follow(l1);
+  r2.Follow(r1);
 
   l1.SetNeutralMode(NeutralMode::Brake);
   r1.SetNeutralMode(NeutralMode::Brake);
+  l2.SetNeutralMode(NeutralMode::Brake);
+  r2.SetNeutralMode(NeutralMode::Brake);
 
   // r1.SetSafety
 }
 
-void Robot::LineSensorInit() {
+void Robot::LineSensorInit() /* all commented out */ {
   // lineSensorLeft = new frc::DigitalInput(7);  //  6);//10);
   // lineSensorMid = new frc::DigitalInput(8);  //  );//11);
   // lineSensorRight = new frc::DigitalInput(9);  //  (4);//12);
@@ -205,12 +207,10 @@ void Robot::HandleJoysticks() {
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
   ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
-
 }
 
 void Robot::RunElevator() {
-  double val = gamerJoystick.GetRawAxis(3); // right joy, up/down
-  elevatorSparkMotor.Set(gamerJoystick.GetRawAxis(3)  * 0.2);
+  elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
 }
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {

@@ -76,29 +76,36 @@ class Robot : public frc::TimedRobot {
   // # ONBOARD #
   // SENSORS
   // Lift stage mag sensors
+   DIO* elevatorZero;
+
+/* deprecated
   DIO* liftBottom;
   DIO* liftMid;
   DIO* liftTop;
+*/
   
-  // Line following sensors
-  // DIO* lineSensorLeft;
-  // DIO* lineSensorMid;
-  // DIO* lineSensorRight;
-  // frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
-  // frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
-  // frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
-  // frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
-  // frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
+/* Line following sensors - experimental
+  DIO* lineSensorLeft;
+  DIO* lineSensorMid;
+  DIO* lineSensorRight;
+  frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
+  frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
+  frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
+  frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
+  frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
+*/
 
   Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
   Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
 
 //  ## ULTRASONICS ##
-  // frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
-  // frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
-  // DIO* leftDioUltrasonic;
-  // DIO* rightDioUltrasonic;
-  // frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
+/* plugging ultrasonics into other types of ports - experimental
+  frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
+  frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
+  DIO* leftDioUltrasonic;
+  DIO* rightDioUltrasonic;
+  frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
+*/
   frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(1);
   frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
 
@@ -115,14 +122,13 @@ class Robot : public frc::TimedRobot {
   // MOTOR CONTROLLERS
   // Talons
   WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
-  // WPI_TalonSRX l2{LEFT_2_CAN_ADDRESS};
+  WPI_VictorSPX l2{LEFT_2_CAN_ADDRESS};
   WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
-  // WPI_TalonSRX r2{RIGHT_2_CAN_ADDRESS}; 
-  WPI_TalonSRX encTest{1};
+  WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS}; 
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
-  WPI_TalonSRX elevatorTalonMotor{ELEVATOR_MOTOR_CAN_ADDRESS};
-  frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM};
+  WPI_TalonSRX elevator{ELEVATOR_MOTOR_CAN_ADDRESS};
+  // frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM};
 
 
   // frc::DifferentialDrive drive{l1, r1};
@@ -138,7 +144,6 @@ class Robot : public frc::TimedRobot {
   frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
 
   // frc::PIDController straighten = frc::PIDController();
-
 
   frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
 
