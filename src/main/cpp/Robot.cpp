@@ -204,9 +204,9 @@ void Robot::HandleJoysticks() {
   }
 
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, intakeArm);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, ballPusher);
-  ToggleSolenoid(/* rightJoystick.GetRawButtonPressed(2) */ false, hatchPusher);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
 }
 
 void Robot::RunElevator() {
