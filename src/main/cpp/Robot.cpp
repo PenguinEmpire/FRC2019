@@ -19,10 +19,16 @@ void Robot::RobotInit() {
 
   //-----------------------------------------------------------------------------------
 
+/* some deprecated sensor stuff
   //Object Initialization
   // liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
   // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
   // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
+  // LineSensorInit();
+  // serialUltrasonic->EnableTermination((char)31);
+  // serialUltrasonic->Reset();
+*/
+
   elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
 
   analogUltrasonicR->InitAccumulator();
@@ -30,10 +36,6 @@ void Robot::RobotInit() {
   analogUltrasonicL->InitAccumulator();
   analogUltrasonicL->ResetAccumulator();
  
-  // LineSensorInit();
-
-  // serialUltrasonic->EnableTermination((char)31);
-  // serialUltrasonic->Reset();
 
   leftEnc.SetDistancePerPulse(PULSE_IN);
   rightEnc.SetDistancePerPulse(PULSE_IN);
@@ -43,9 +45,9 @@ void Robot::RobotInit() {
 
   compressor.SetClosedLoopControl(true);
   ShiftGears(Direction::down, driveGearboxes);
-  // intakeArm.Set(frc::DoubleSolenoid::kReverse);
-  // ballPusher.Set(frc::DoubleSolenoid::kReverse);    // IS THIS RIGHT? (TODO)
-  // hatchPusher.Set(frc::DoubleSolenoid::kReverse);
+  intakeArm.Set(frc::DoubleSolenoid::kReverse);
+  ballPusher.Set(frc::DoubleSolenoid::kReverse);    // IS THIS RIGHT? (TODO)
+  hatchPusher.Set(frc::DoubleSolenoid::kReverse);
 
   TalonInit();
   // elevator.SetInverted(false); // TODO
@@ -117,6 +119,8 @@ void Robot::TeleopInit() {}
 void Robot::TeleopPeriodic() {
   HandleJoysticks();
   RunElevator();
+  intakeMotor.Set(gamerJoystick.GetRawAxis(1));
+
 }
 
 void Robot::TestPeriodic() {}
@@ -178,18 +182,18 @@ void Robot::HandleJoysticks() {
   frc::SmartDashboard::PutNumber("ultraTol", ultraTol);
   frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
 
-  if (leftJoystick.GetRawButton(3)) {
+  if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
     Align(distances.ultrasonicL, distances.ultrasonicR, ultraTol, DistanceType::ultrasonic);
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
-  } else if (leftJoystick.GetRawButton(4)) {
+  } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
     Align(distances.lidarL, distances.lidarR, lidarTol, DistanceType::lidar);
     frc::SmartDashboard::PutBoolean("appr-lidar", true);
-  } else if (leftJoystick.GetRawButton(5)) {
+  } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
     GetLimelight();
     DriveLeft ( left_command * -0.7);
     DriveRight(right_command * -0.7);
 
-  } else {
+  } else { // manual driving
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
     frc::SmartDashboard::PutBoolean("appr-lidar", false);
 
