@@ -216,22 +216,35 @@ void Robot::HandleJoysticks() {
 }
 
 void Robot::RunElevator() {
+  frc::SmartDashboard::PutBoolean("elevatorZeroSensor", elevatorAtZero);
   if (elevatorState == CALIBRATING) {
     if (!elevatorAtZero) {
       elevator.Set(ControlMode::Velocity, -0.0001);
     } else {
       elevatorState = NORMAL;
     }
-  } else if (elevatorState == NORMAL) {
+  } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
+
     switch (elevatorDestination) {
-      case PICKUP:
-      case HATCH_CARGO:
-      case HATCH_LOW:
-        elevator.Set(ControlMode::Position, 200);
+      {
+        case MECHANICAL_LOW:
+        case PICKUP:
+        case BALL_CARGO:
+        case HATCH_CARGO:
+        case HATCH_LOW:
+        case HATCH_MID:
+        case HATCH_HIGH:
+        case BALL_LOW:
+        case BALL_MID:
+        case BALL_HIGH:
+          elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
+          // elevator.Set(ControlMode::Position, 200);
+      }
+      case MANUAL:
+        elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
       default:
         elevator.Set(ControlMode::PercentOutput, 0.0);
     }
-    elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
   }
 }
 

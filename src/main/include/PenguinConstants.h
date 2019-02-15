@@ -44,9 +44,9 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
  
-constexpr int INTAKE_MOTOR_PWM_PORT = pwm0;
+constexpr int INTAKE_MOTOR_PWM_PORT = 5;
 
-constexpr int ELEVATOR_ZERO_HALL_DIO = 9;
+constexpr int ELEVATOR_ZERO_HALL_DIO = 4;
 
 constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 1;
 constexpr int LEFT_1_CAN_ADDRESS =  3;

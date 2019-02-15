@@ -51,10 +51,22 @@ class Robot : public frc::TimedRobot {
   } elevatorState = CALIBRATING;
 
   enum ElevatorDestination {
-    MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
-  } elevatorDestination;
+    MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
+  } elevatorDestination = MANUAL;
 
-  unordered_map<Robot::ElevatorDestination, int> encoderHeights = {};
+  unordered_map<Robot::ElevatorDestination, int> elevatorHeights = {
+    {MANUAL,           1 /* placeholder!!!! TODO */ },
+    {MECHANICAL_LOW,   1 /* placeholder!!!! TODO */ },
+    {PICKUP,           1 /* placeholder!!!! TODO */ },
+    {BALL_CARGO,       1 /* placeholder!!!! TODO */ },
+    {HATCH_CARGO,      1 /* placeholder!!!! TODO */ },
+    {HATCH_LOW,        1 /* placeholder!!!! TODO */ },
+    {HATCH_MID,        1 /* placeholder!!!! TODO */ },
+    {HATCH_HIGH,       1 /* placeholder!!!! TODO */ },
+    {BALL_LOW,         1 /* placeholder!!!! TODO */ },
+    {BALL_MID,         1 /* placeholder!!!! TODO */ },
+    {BALL_HIGH,        1 /* placeholder!!!! TODO */ }
+  };
 
 
   enum DistanceType {
