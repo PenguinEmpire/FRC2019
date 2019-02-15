@@ -35,15 +35,27 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   } currentGear = down;
 
-  unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = { \
-      {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, \
-      {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, \
+  unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = {
+    {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, 
+    {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, 
   };
 
   enum State {
-      UNINITIALIZED,
-      LINING_UP,
+    UNINITIALIZED,
+    LINING_UP,
   } currentState = UNINITIALIZED;
+
+  enum ElevatorState {
+    CALIBRATING,
+    NORMAL
+  } elevatorState = CALIBRATING;
+
+  enum ElevatorDestination {
+    MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
+  } elevatorDestination;
+
+  unordered_map<Robot::ElevatorDestination, int> encoderHeights = {};
+
 
   enum DistanceType {
     lidar, ultrasonic
@@ -76,7 +88,8 @@ class Robot : public frc::TimedRobot {
   // # ONBOARD #
   // SENSORS
   // Lift stage mag sensors
-   DIO* elevatorZero;
+  DIO* elevatorZero;
+  bool elevatorAtZero = false;
 
 /* deprecated
   DIO* liftBottom;

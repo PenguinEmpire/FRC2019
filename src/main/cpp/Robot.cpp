@@ -65,6 +65,8 @@ void Robot::RobotInit() {
 void Robot::RobotPeriodic() {
   Testing();
   GetDistances();
+
+  elevatorAtZero = !elevatorZero->Get();
 }
 
 /**
@@ -214,7 +216,23 @@ void Robot::HandleJoysticks() {
 }
 
 void Robot::RunElevator() {
-  elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
+  if (elevatorState == CALIBRATING) {
+    if (!elevatorAtZero) {
+      elevator.Set(ControlMode::Velocity, -0.0001);
+    } else {
+      elevatorState = NORMAL;
+    }
+  } else if (elevatorState == NORMAL) {
+    switch (elevatorDestination) {
+      case PICKUP:
+      case HATCH_CARGO:
+      case HATCH_LOW:
+        elevator.Set(ControlMode::Position, 200);
+      default:
+        elevator.Set(ControlMode::PercentOutput, 0.0);
+    }
+    elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
+  }
 }
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
@@ -430,6 +448,9 @@ void Robot::Testing() {
 
   // frc::SmartDashboard::PutNumber("Left Encoder", leftEnc.GetDistance());
 	// frc::SmartDashboard::PutNumber("Right Encoder", rightEnc.GetDistance());
+
+  frc::SmartDashboard::PutBoolean("dio elevator", elevatorZero->Get());
+
 
   // frc::SmartDashboard::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
   // frc::SmartDashboard::PutNumber("lineSensorMid", lineSensorMid->GetValue());
