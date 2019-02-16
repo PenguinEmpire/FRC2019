@@ -144,6 +144,9 @@ void Robot::TalonInit() {
   r2.SetNeutralMode(NeutralMode::Brake);
 
   // r1.SetSafety
+
+  elevator.SetInverted(false);
+  elevator.SetSensorPhase(true); 
 }
 
 void Robot::LineSensorInit() /* all commented out */ {
@@ -216,36 +219,36 @@ void Robot::HandleJoysticks() {
 }
 
 void Robot::RunElevator() {
-  frc::SmartDashboard::PutBoolean("elevatorZeroSensor", elevatorAtZero);
-  if (elevatorState == CALIBRATING) {
+/*  if (elevatorState == CALIBRATING) {
     if (!elevatorAtZero) {
       elevator.Set(ControlMode::Velocity, -0.0001);
     } else {
+      elevator.Set(ControlMode::PercentOutput, 0.0);
       elevatorState = NORMAL;
     }
   } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
 
     switch (elevatorDestination) {
-      {
-        case MECHANICAL_LOW:
-        case PICKUP:
-        case BALL_CARGO:
-        case HATCH_CARGO:
-        case HATCH_LOW:
-        case HATCH_MID:
-        case HATCH_HIGH:
-        case BALL_LOW:
-        case BALL_MID:
-        case BALL_HIGH:
-          elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
-          // elevator.Set(ControlMode::Position, 200);
-      }
+      case MECHANICAL_LOW:
+      case PICKUP:
+      case BALL_CARGO:
+      case HATCH_CARGO:
+      case HATCH_LOW:
+      case HATCH_MID:
+      case HATCH_HIGH:
+      case BALL_LOW:
+      case BALL_MID:
+      case BALL_HIGH:
+        elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
+        // elevator.Set(ControlMode::Position, 200);
       case MANUAL:
         elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
       default:
         elevator.Set(ControlMode::PercentOutput, 0.0);
     }
   }
+*/
+elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
 }
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
@@ -463,6 +466,8 @@ void Robot::Testing() {
 	// frc::SmartDashboard::PutNumber("Right Encoder", rightEnc.GetDistance());
 
   frc::SmartDashboard::PutBoolean("dio elevator", elevatorZero->Get());
+  frc::SmartDashboard::PutBoolean("elevatorZeroSensor", elevatorAtZero);
+
 
 
   // frc::SmartDashboard::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
@@ -476,21 +481,21 @@ void Robot::Testing() {
   frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
   frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
   
-  frc::SmartDashboard::PutNumber( "ahrs->GetPitch()                ", ahrs->GetPitch()                );
-  frc::SmartDashboard::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );
-  frc::SmartDashboard::PutNumber( "ahrs->GetYaw()                  ", ahrs->GetYaw()                  );
-  frc::SmartDashboard::PutBoolean("ahrs->IsCalibrating()           ", ahrs->IsCalibrating()           );
-  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelX()    ", ahrs->GetWorldLinearAccelX()    );
-  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelY()    ", ahrs->GetWorldLinearAccelY()    );
-  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelZ()    ", ahrs->GetWorldLinearAccelZ()    );
-  frc::SmartDashboard::PutBoolean("ahrs->IsMoving()                ", ahrs->IsMoving()                );
-  frc::SmartDashboard::PutBoolean("ahrs->IsRotating()              ", ahrs->IsRotating()              );
-  frc::SmartDashboard::PutBoolean("ahrs->IsMagnetometerCalibrated()", ahrs->IsMagnetometerCalibrated());
-  frc::SmartDashboard::PutNumber( "ahrs->GetAngle()                ", ahrs->GetAngle()                );
-  frc::SmartDashboard::PutNumber( "ahrs->GetRate()                 ", ahrs->GetRate()                 );
-  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
-  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
-  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetPitch()                ", ahrs->GetPitch()                );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetYaw()                  ", ahrs->GetYaw()                  );
+  // frc::SmartDashboard::PutBoolean("ahrs->IsCalibrating()           ", ahrs->IsCalibrating()           );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelX()    ", ahrs->GetWorldLinearAccelX()    );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelY()    ", ahrs->GetWorldLinearAccelY()    );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelZ()    ", ahrs->GetWorldLinearAccelZ()    );
+  // frc::SmartDashboard::PutBoolean("ahrs->IsMoving()                ", ahrs->IsMoving()                );
+  // frc::SmartDashboard::PutBoolean("ahrs->IsRotating()              ", ahrs->IsRotating()              );
+  // frc::SmartDashboard::PutBoolean("ahrs->IsMagnetometerCalibrated()", ahrs->IsMagnetometerCalibrated());
+  // frc::SmartDashboard::PutNumber( "ahrs->GetAngle()                ", ahrs->GetAngle()                );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetRate()                 ", ahrs->GetRate()                 );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
+  // frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
   
   
 }
