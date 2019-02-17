@@ -257,6 +257,7 @@ void Robot::RunElevator() {
   int absPos2 = elevator.GetSelectedSensorPosition();
   frc::SmartDashboard::PutNumber("curPos", curPos);
   frc::SmartDashboard::PutNumber("absPos", absPos);
+  frc::SmartDashboard::PutNumber("absPos2", absPos2);
   
   if (elevatorState == CALIBRATING) {
     printf("in elevator calibrating\n");
@@ -320,9 +321,9 @@ void Robot::RunElevator() {
         break;
     }
     if (elevatorAtZero) {
-      elevator.ConfigPeakOutputReverse(0);
+      elevator.ConfigPeakOutputReverse(0.0);
     } else {
-      elevator.ConfigPeakOutputReverse(-1);
+      elevator.ConfigPeakOutputReverse(-1.0);
     }
     // auto x = new int[2]{0, -1};
     // elevator.ConfigPeakOutputReverse(new int[2]{0, -1}[!elevatorAtZero])
@@ -357,18 +358,6 @@ void Robot::ToggleSolenoid(bool btn, frc::DoubleSolenoid& solenoid) {
   if (btn) {
     ToggleSolenoid(solenoid);
   }
-
-/* old code 
-  // if(btn) {
-  //   if ( currentGear == Direction::down) {
-  //     currentGear = Direction::up;
-  //   } else if( currentGear == Direction::up) {
-  //     currentGear = Direction::down;
-  //   }
-  // }
-
-  // ShiftGears(currentGear, driveGearboxes);
-*/
 }
 
 void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
@@ -454,10 +443,7 @@ void Robot::GetLimelight() {
   left_command  = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
   right_command = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
 
-  // double temp = left_command;
-  // left_command = right_command;
-  // right_command = temp;
-  
+ 
 
   frc::SmartDashboard::PutNumber("left_command", left_command);
   frc::SmartDashboard::PutNumber("right_command", right_command);
@@ -496,16 +482,6 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
     DriveLeft ( go);
     DriveRight(-go);
   }
-
-  // if (left - right  > tolerance) {
-  //   DriveLeft ( go);
-  //   DriveRight(-go); 
-  // } else if (right - left > tolerance) {
-  //   DriveLeft (-go);
-  //   DriveRight( go);
-  // } else {
-  //   DriveBoth(0.0);
-  // }
 }
 
 void Robot::LidarInit() {}
