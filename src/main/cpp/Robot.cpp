@@ -289,24 +289,33 @@ void Robot::RunElevator() {
     int _pos;
     printf("in elevator normal\n");
     switch (elevatorDestination) {
+      case HOLD:
+        elevator.Set(ControlMode::PercentOutput, 0.2);
+        break;
+      case MANUAL:
+        printf("setting to gamerjoystick\n");
+        elevator.Set(ControlMode::PercentOutput, -gamerJoystick.GetRawAxis(5) + 0.2);
+        break;
       case MECHANICAL_LOW:
+        break;
       case PICKUP:
+        break;
       case BALL_CARGO:
       case HATCH_CARGO:
+        break;
       case HATCH_LOW:
-        break;
       case HATCH_MID:
-        _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
-        elevator.Set(ControlMode::Position, _pos);
-        break;
+        // _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
+        // elevator.Set(ControlMode::Position, _pos);
+        // break;
       case HATCH_HIGH:
-        _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
-        elevator.Set(ControlMode::Position, _pos);
-        break;
+        // _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
+        // elevator.Set(ControlMode::Position, _pos);
+        // break;
       case BALL_LOW:
-        _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
-        elevator.Set(ControlMode::Position, _pos);
-        break;
+        // _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
+        // elevator.Set(ControlMode::Position, _pos);
+        // break;
       case BALL_MID:
       case BALL_HIGH:
         printf("setting to a preset\n");
@@ -320,13 +329,6 @@ void Robot::RunElevator() {
         // }
         elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
         // elevator.Set(ControlMode::Position, 200);
-        break;
-      case HOLD:
-        elevator.Set(ControlMode::PercentOutput, 0.2);
-        break;
-      case MANUAL:
-        printf("setting to gamerjoystick\n");
-        elevator.Set(ControlMode::PercentOutput, -gamerJoystick.GetRawAxis(5) + 0.2);
         break;
       default:
         elevator.Set(ControlMode::PercentOutput, 0.0);
