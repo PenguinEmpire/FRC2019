@@ -48,6 +48,9 @@ constexpr int INTAKE_MOTOR_PWM_PORT = 4;
 
 constexpr int ELEVATOR_ZERO_HALL_DIO = 4;
 
+constexpr int ULTRASONIC_R_ANALOG_IN = 1;
+constexpr int ULTRASONIC_L_ANALOG_IN = 0;
+
 constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 1;
 constexpr int LEFT_1_CAN_ADDRESS =  3;
 constexpr int LEFT_2_CAN_ADDRESS =  0;

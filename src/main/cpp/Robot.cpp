@@ -156,6 +156,10 @@ void Robot::TalonInit() {
   elevator.SetInverted(true);
   elevator.SetSensorPhase(true); 
 
+  elevator.ConfigPeakOutputReverse(-1.0);
+  elevator.ConfigPeakOutputForward(1.0);
+
+
   elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, 0);
 }
 
@@ -235,12 +239,20 @@ void Robot::HandleJoysticks() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
 
-  if (rightJoystick.GetRawButtonPressed(11)) {
-    elevatorDestination = HATCH_MID;  
-  } else if (rightJoystick.GetRawButtonPressed(12)) {
+  if (buttonJoystick.GetRawButtonPressed(7)) {
+    elevatorDestination = HATCH_HIGH;  
+  } else if (buttonJoystick.GetRawButtonPressed(8)) {
+    elevatorDestination = BALL_HIGH;
+  } else if (buttonJoystick.GetRawButtonPressed(9)) {
+    elevatorDestination = HATCH_MID;
+  } else if (buttonJoystick.GetRawButtonPressed(10)) {
+    elevatorDestination = BALL_MID;
+  } else if (buttonJoystick.GetRawButtonPressed(11)) {
+    elevatorDestination = HATCH_LOW;
+  } else if (buttonJoystick.GetRawButtonPressed(12)) {
+    elevatorDestination = BALL_HIGH;
+  } else if (gamerJoystick.GetRawButtonPressed(6)) {
     elevatorDestination = MANUAL;
-  } else if (rightJoystick.GetRawButtonPressed(9)) {
-    elevatorDestination = HATCH_HIGH;
   }
 
   if (leftJoystick.GetRawButtonPressed(2)) {
@@ -268,9 +280,9 @@ void Robot::RunElevator() {
     } else {
       printf("in cali - else (at zero)\n");
       elevator.Set(ControlMode::PercentOutput, 0.0);
-      elevator.SetSelectedSensorPosition(absPos, 0, 10);
+      // elevator.SetSelectedSensorPosition(0, 0, 10);
       elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
-      // elevator.SetSelectedSensorPosition(curPos, 0, 10);
+      elevator.SetSelectedSensorPosition(0, 0, 10);
       elevatorState = NORMAL;
     }
   } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH

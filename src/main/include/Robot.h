@@ -61,9 +61,9 @@ class Robot : public frc::TimedRobot {
     {PICKUP,           1 /* placeholder!!!! TODO */ },
     {BALL_CARGO,       1 /* placeholder!!!! TODO */ },
     {HATCH_CARGO,      1 /* placeholder!!!! TODO */ },
-    {HATCH_LOW,        1 /* placeholder!!!! TODO */ },
-    {HATCH_MID,        10700 /* placeholder!!!! TODO */ },
-    {HATCH_HIGH,       23000 /* placeholder!!!! TODO */ },
+    {HATCH_LOW,        -1000 /* placeholder!!!! TODO */ },
+    {HATCH_MID,        12500 /* placeholder!!!! TODO */ },
+    {HATCH_HIGH,       25100 /* placeholder!!!! TODO */ },
     {BALL_LOW,         1000 /* placeholder!!!! TODO */ },
     {BALL_MID,         1 /* placeholder!!!! TODO */ },
     {BALL_HIGH,        1 /* placeholder!!!! TODO */ },
@@ -101,6 +101,7 @@ class Robot : public frc::TimedRobot {
   frc::Joystick leftJoystick  = frc::Joystick(usb0);
   frc::Joystick rightJoystick = frc::Joystick(usb1);
   frc::Joystick gamerJoystick = frc::Joystick(usb2);
+  frc::Joystick buttonJoystick = frc::Joystick(3);
 
   // # ONBOARD #
   // SENSORS
@@ -136,8 +137,8 @@ class Robot : public frc::TimedRobot {
   DIO* rightDioUltrasonic;
   frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
 */
-  frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(1);
-  frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(0);
+  frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(ULTRASONIC_R_ANALOG_IN);
+  frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(ULTRASONIC_L_ANALOG_IN);
 
   struct distance {
     int lidarL;
