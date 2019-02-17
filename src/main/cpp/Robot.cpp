@@ -17,6 +17,11 @@ void Robot::RobotInit() {
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
+  Spark_l1.SetInverted(true);
+  Spark_l2.SetInverted(true);
+  Spark_r1.SetInverted(false);
+  Spark_r2.SetInverted(false);
+
   //-----------------------------------------------------------------------------------
 
 /* some deprecated sensor stuff
@@ -28,6 +33,10 @@ void Robot::RobotInit() {
   // serialUltrasonic->EnableTermination((char)31);
   // serialUltrasonic->Reset();
 */
+
+  frc::SmartDashboard::PutNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
+  frc::SmartDashboard::PutNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
+  frc::SmartDashboard::PutNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
 
   elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
 
@@ -50,8 +59,7 @@ void Robot::RobotInit() {
   hatchPusher.Set(frc::DoubleSolenoid::kReverse);
 
   TalonInit();
-  // elevator.SetInverted(false); // TODO
-  intakeMotor.SetInverted(false); // TODO
+  intakeMotor.SetInverted(false);
 }
 
 /**
@@ -62,7 +70,7 @@ void Robot::RobotInit() {
  * <p> This runs after the mode specific periodic functions, but before
  * LiveWindow and SmartDashboard integrated updating.
  */
-void Robot::RobotPeriodic() {
+void Robot::RobotPeriodic() { // runs after mode specific
   Testing();
   GetDistances();
 
@@ -98,10 +106,6 @@ void Robot::AutonomousInit() {
   rightEnc.Reset();
 
   ahrs->Reset();
-
-  ;;;;;;;;
-
-
 }
 
 void Robot::AutonomousPeriodic() {
@@ -120,7 +124,7 @@ void Robot::TeleopInit() {}
 
 void Robot::TeleopPeriodic() {
   HandleJoysticks();
-  RunElevator();
+  RunElevator(); 
   intakeMotor.Set(gamerJoystick.GetRawAxis(1));
 
 }
@@ -143,13 +147,19 @@ void Robot::TalonInit() {
   l2.SetNeutralMode(NeutralMode::Brake);
   r2.SetNeutralMode(NeutralMode::Brake);
 
+  l1.ConfigOpenloopRamp(1.5, 10);
+  r1.ConfigOpenloopRamp(1.5, 10);
+
   // r1.SetSafety
 
-  elevator.SetInverted(false);
+  elevator.SetNeutralMode(NeutralMode::Brake);
+  elevator.SetInverted(true);
   elevator.SetSensorPhase(true); 
+
+  elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, 0);
 }
 
-void Robot::LineSensorInit() /* all commented out */ {
+void Robot::LineSensorInit() /* all commented out - deprecated */ {
   // lineSensorLeft = new frc::DigitalInput(7);  //  6);//10);
   // lineSensorMid = new frc::DigitalInput(8);  //  );//11);
   // lineSensorRight = new frc::DigitalInput(9);  //  (4);//12);
@@ -206,9 +216,17 @@ void Robot::HandleJoysticks() {
     if(fabs(left - right) < leftJoystick.GetRawAxis(3)) {
       both = (left + right) / 2;
       DriveBoth (calculateDampenedJoystick(both ));
+      Spark_l1.Set(both);
+      Spark_l2.Set(both);
+      Spark_r1.Set(both);
+      Spark_r2.Set(both);
     } else {
       DriveLeft (calculateDampenedJoystick(left ));
+      Spark_l1.Set(left);
+      Spark_l2.Set(left);
       DriveRight(calculateDampenedJoystick(right));
+      Spark_r1.Set(right);
+      Spark_r2.Set(right);
     }
   }
 
@@ -216,40 +234,101 @@ void Robot::HandleJoysticks() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
+
+  if (rightJoystick.GetRawButtonPressed(11)) {
+    elevatorDestination = HATCH_MID;  
+  } else if (rightJoystick.GetRawButtonPressed(12)) {
+    elevatorDestination = MANUAL;
+  } else if (rightJoystick.GetRawButtonPressed(9)) {
+    elevatorDestination = HATCH_HIGH;
+  }
+
+  if (leftJoystick.GetRawButtonPressed(2)) {
+    Spark_l1.SetInverted(!Spark_l1.GetInverted());
+    Spark_l2.SetInverted(!Spark_l2.GetInverted());
+    Spark_r1.SetInverted(!Spark_r1.GetInverted());
+    Spark_r2.SetInverted(!Spark_r2.GetInverted());
+  }
 }
 
 void Robot::RunElevator() {
-/*  if (elevatorState == CALIBRATING) {
+  int curPos = elevator.GetSensorCollection().GetPulseWidthPosition();
+  int absPos = elevator.GetSelectedSensorPosition() & 0xFFF;
+  int absPos2 = elevator.GetSelectedSensorPosition();
+  frc::SmartDashboard::PutNumber("curPos", curPos);
+  frc::SmartDashboard::PutNumber("absPos", absPos);
+  
+  if (elevatorState == CALIBRATING) {
+    printf("in elevator calibrating\n");
     if (!elevatorAtZero) {
-      elevator.Set(ControlMode::Velocity, -0.0001);
+      printf("in cali - not at zero\n");
+      // elevator.Set(ControlMode::Velocity, -0.0001);
+      elevator.Set(ControlMode::PercentOutput, -0.8);
     } else {
+      printf("in cali - else (at zero)\n");
       elevator.Set(ControlMode::PercentOutput, 0.0);
+      elevator.SetSelectedSensorPosition(absPos, 0, 10);
+      elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
+      // elevator.SetSelectedSensorPosition(curPos, 0, 10);
       elevatorState = NORMAL;
     }
   } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
-
+    int _pos;
+    printf("in elevator normal\n");
     switch (elevatorDestination) {
       case MECHANICAL_LOW:
       case PICKUP:
       case BALL_CARGO:
       case HATCH_CARGO:
       case HATCH_LOW:
+        break;
       case HATCH_MID:
+        _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
+        elevator.Set(ControlMode::Position, _pos);
+        break;
       case HATCH_HIGH:
+        _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
+        elevator.Set(ControlMode::Position, _pos);
+        break;
       case BALL_LOW:
+        _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
+        elevator.Set(ControlMode::Position, _pos);
+        break;
       case BALL_MID:
       case BALL_HIGH:
+        printf("setting to a preset\n");
+        // if (curPos < elevatorHeights[elevatorDestination] - 100) {
+        //   elevator.Set(ControlMode::PercentOutput, 0.6);
+        // } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
+        //   elevator.Set(ControlMode::PercentOutput, -0.6);
+        // } else {
+        //   elevator.Set(ControlMode::PercentOutput, 0.0);
+        //   elevatorDestination = MANUAL;
+        // }
         elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
         // elevator.Set(ControlMode::Position, 200);
+        break;
+      case HOLD:
+        elevator.Set(ControlMode::PercentOutput, 0.2);
+        break;
       case MANUAL:
-        elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
+        printf("setting to gamerjoystick\n");
+        elevator.Set(ControlMode::PercentOutput, -gamerJoystick.GetRawAxis(5) + 0.2);
+        break;
       default:
         elevator.Set(ControlMode::PercentOutput, 0.0);
+        break;
     }
-  }
-*/
-elevator.Set(ControlMode::PercentOutput, gamerJoystick.GetRawAxis(5));
+    if (elevatorAtZero) {
+      elevator.ConfigPeakOutputReverse(0);
+    } else {
+      elevator.ConfigPeakOutputReverse(-1);
+    }
+    // auto x = new int[2]{0, -1};
+    // elevator.ConfigPeakOutputReverse(new int[2]{0, -1}[!elevatorAtZero])
+  } 
 }
+
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
   frc::DoubleSolenoid::Value state;
@@ -466,7 +545,7 @@ void Robot::Testing() {
 	// frc::SmartDashboard::PutNumber("Right Encoder", rightEnc.GetDistance());
 
   frc::SmartDashboard::PutBoolean("dio elevator", elevatorZero->Get());
-  frc::SmartDashboard::PutBoolean("elevatorZeroSensor", elevatorAtZero);
+  frc::SmartDashboard::PutBoolean("elevatorAtZero", elevatorAtZero);
 
 
 
@@ -480,6 +559,11 @@ void Robot::Testing() {
   frc::SmartDashboard::PutNumber("dist.ultraL", distances.ultrasonicL);
   frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
   frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
+
+  frc::SmartDashboard::PutString("elevatorState", elevatorState == CALIBRATING ? "cali" : (elevatorState == NORMAL ? "norm" : "other"));
+  frc::SmartDashboard::PutString("elevatorDestination", elevatorDestination == MANUAL ? "manual" : (elevatorDestination == HOLD ? "hold" : (elevatorDestination == HATCH_MID ? "hatch_mid" : "other")));
+
+  frc::SmartDashboard::PutNumber("gamer-5", gamerJoystick.GetRawAxis(5));
   
   // frc::SmartDashboard::PutNumber( "ahrs->GetPitch()                ", ahrs->GetPitch()                );
   // frc::SmartDashboard::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );

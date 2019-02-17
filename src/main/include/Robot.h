@@ -48,24 +48,26 @@ class Robot : public frc::TimedRobot {
   enum ElevatorState {
     CALIBRATING,
     NORMAL
+    // HOLD
   } elevatorState = CALIBRATING;
 
   enum ElevatorDestination {
-    MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
+    MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH, HOLD
   } elevatorDestination = MANUAL;
 
   unordered_map<Robot::ElevatorDestination, int> elevatorHeights = {
     {MANUAL,           1 /* placeholder!!!! TODO */ },
-    {MECHANICAL_LOW,   1 /* placeholder!!!! TODO */ },
+    {MECHANICAL_LOW,   3660 /* placeholder!!!! TODO */ },
     {PICKUP,           1 /* placeholder!!!! TODO */ },
     {BALL_CARGO,       1 /* placeholder!!!! TODO */ },
     {HATCH_CARGO,      1 /* placeholder!!!! TODO */ },
     {HATCH_LOW,        1 /* placeholder!!!! TODO */ },
-    {HATCH_MID,        1 /* placeholder!!!! TODO */ },
-    {HATCH_HIGH,       1 /* placeholder!!!! TODO */ },
-    {BALL_LOW,         1 /* placeholder!!!! TODO */ },
+    {HATCH_MID,        10700 /* placeholder!!!! TODO */ },
+    {HATCH_HIGH,       23000 /* placeholder!!!! TODO */ },
+    {BALL_LOW,         1000 /* placeholder!!!! TODO */ },
     {BALL_MID,         1 /* placeholder!!!! TODO */ },
-    {BALL_HIGH,        1 /* placeholder!!!! TODO */ }
+    {BALL_HIGH,        1 /* placeholder!!!! TODO */ },
+    {HOLD,             1}
   };
 
 
@@ -87,6 +89,9 @@ class Robot : public frc::TimedRobot {
 
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
   std::shared_ptr<NetworkTable> limelight = inst.GetTable("limelight");
+  std::shared_ptr<NetworkTable> dash = inst.GetTable("SmartDashboard");
+
+
 
   double left_command  = 0.0;
   double right_command = 0.0;
@@ -149,7 +154,12 @@ class Robot : public frc::TimedRobot {
   WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
   WPI_VictorSPX l2{LEFT_2_CAN_ADDRESS};
   WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
-  WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS}; 
+  WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS};
+
+  frc::Spark Spark_l1{0};
+  frc::Spark Spark_l2{1};
+  frc::Spark Spark_r1{2};
+  frc::Spark Spark_r2{3};
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
   WPI_TalonSRX elevator{ELEVATOR_MOTOR_CAN_ADDRESS};
@@ -199,6 +209,7 @@ class Robot : public frc::TimedRobot {
   void DriveBoth(double amount);
   void HandleJoysticks(); //TODO: better name
   void RunElevator();
+  void RunElevator2();
 
 
 
