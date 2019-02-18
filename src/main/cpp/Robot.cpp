@@ -223,10 +223,10 @@ void Robot::HandleJoysticks() {
   frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
 
   if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
-    Align(distances.ultrasonicL, distances.ultrasonicR, ultraTol, DistanceType::ultrasonic);
+    Align(DistanceType::ULTRASONIC);
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
   } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
-    Align(distances.lidarL, distances.lidarR, lidarTol, DistanceType::lidar);
+    Align(DistanceType::LIDAR);
     frc::SmartDashboard::PutBoolean("appr-lidar", true);
   } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
     GetLimelight();
@@ -488,6 +488,7 @@ void Robot::GetLimelight() {
 
 }  
 
+/* deprecated */
 void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) {
   // double kP = 1.0;
   // double kI = 0.0;
@@ -519,6 +520,54 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
     DriveLeft ( go);
     DriveRight(-go);
   }
+}
+
+void Robot::Align(Robot::DistanceType type) {
+  // double kP = 1.0;
+  // double kI = 0.0;
+  // double kD = 0.0;
+
+  int left;
+  int right;
+  int tolerance;
+
+  if (type == LIDAR) {
+    left = distances.lidarL;
+    right = distances.lidarR;
+    tolerance = 80 * toleranceScalar;
+  } else if (type = ULTRASONIC) {
+    left = distances.ultrasonicL;
+    right = distances.ultrasonicR;
+    tolerance = 240 * toleranceScalar;
+  }
+
+  double dif = left - right;
+
+  double forward  = -(+0.5);
+  double backward = -(-0.5);
+
+  // int newval = (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+
+  // (20, 120) and (200, 900)
+  // left-right
+  // 120-20 -- 20-120 = 100 - -100
+  // 700 -- -700
+
+  double go;
+  if (type == lidar) {
+    go = linearMap(dif, -100, 100, 0.85, -0.85);
+  } else if (type == ultrasonic) {
+    go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
+  };
+
+  frc::SmartDashboard::PutNumber("dis| go", go);
+  frc::SmartDashboard::PutNumber("dis| dif", dif);
+
+  if (fabs(dif) > tolerance) {
+    DriveLeft ( go);
+    DriveRight(-go);
+  }
+
 }
 
 void Robot::LidarInit() {}

@@ -72,7 +72,7 @@ class Robot : public frc::TimedRobot {
 
 
   enum DistanceType {
-    lidar, ultrasonic
+    LIDAR, ULTRASONIC
   };
 
 /*   struct pneumatic {
@@ -202,6 +202,7 @@ class Robot : public frc::TimedRobot {
 
   void GetDistances();
   void Align(int left, int right, int tolerance, Robot::DistanceType type);
+  void Align(Robot::DistanceType type);
   void LidarInit();
   void GetLimelight();
 
