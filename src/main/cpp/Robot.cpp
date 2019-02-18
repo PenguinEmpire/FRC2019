@@ -210,6 +210,12 @@ void Robot::HandleJoysticks() {
   double right = rightJoystick.GetRawAxis(1);
   double both;
 
+  if (driveInverted) {
+    double temp = left;
+    left = right;
+    right = temp;
+  }
+
   toleranceScalar = ((leftJoystick.GetRawAxis(3) + 1) / 2);
   int ultraTol = 240 * toleranceScalar;
   int lidarTol =  80 * toleranceScalar;
@@ -272,9 +278,11 @@ void Robot::HandleJoysticks() {
 
   if (leftJoystick.GetRawButtonPressed(2)) {
     Spark_l1.SetInverted(!Spark_l1.GetInverted());
-    Spark_l2.SetInverted(!Spark_l2.GetInverted());
+    Spark_l2.SetInverted(!Spark_l2.GetInverted()); 
     Spark_r1.SetInverted(!Spark_r1.GetInverted());
     Spark_r2.SetInverted(!Spark_r2.GetInverted());
+
+    driveInverted = !driveInverted;
   }
 }
 

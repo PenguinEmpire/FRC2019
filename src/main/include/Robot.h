@@ -87,11 +87,11 @@ class Robot : public frc::TimedRobot {
   };
 */
 
+  bool driveInverted = false;
+
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
   std::shared_ptr<NetworkTable> limelight = inst.GetTable("limelight");
-  std::shared_ptr<NetworkTable> dash = inst.GetTable("SmartDashboard");
-
-
+  // std::shared_ptr<NetworkTable> dash = inst.GetTable("SmartDashboard");
 
   double left_command  = 0.0;
   double right_command = 0.0;
