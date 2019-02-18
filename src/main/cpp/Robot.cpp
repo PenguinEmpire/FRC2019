@@ -134,6 +134,21 @@ void Robot::TestPeriodic() {}
 //--------------------------
 
 void Robot::TalonInit() {
+  l1.ConfigFactoryDefault();
+  l2.ConfigFactoryDefault();
+  r1.ConfigFactoryDefault();
+  r2.ConfigFactoryDefault();
+  elevator.ConfigFactoryDefault();
+
+  elevator.ConfigOpenloopRamp(0.05);
+  elevator.ConfigClosedloopRamp(0.02);
+
+  elevator.Config_kP(0, 6.0, 10);
+  elevator.Config_kF(0, 0.2, 10);
+  elevator.Config_kD(0, 80, 10);
+
+
+
   l1.SetInverted(true);
   // l2.SetInverted(true);
   r1.SetInverted(false); 
@@ -250,7 +265,7 @@ void Robot::HandleJoysticks() {
   } else if (buttonJoystick.GetRawButtonPressed(11)) {
     elevatorDestination = HATCH_LOW;
   } else if (buttonJoystick.GetRawButtonPressed(12)) {
-    elevatorDestination = BALL_HIGH;
+    elevatorDestination = BALL_LOW;
   } else if (gamerJoystick.GetRawButtonPressed(6)) {
     elevatorDestination = MANUAL;
   }
