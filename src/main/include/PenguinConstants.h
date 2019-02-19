@@ -44,21 +44,23 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
  
-constexpr int INTAKE_MOTOR_PWM_PORT = 4;
+constexpr int INTAKE_MOTOR_PWM_PORT = 0;
 
 constexpr int ELEVATOR_ZERO_HALL_DIO = 4;
 
 constexpr int ULTRASONIC_R_ANALOG_IN = 1;
 constexpr int ULTRASONIC_L_ANALOG_IN = 0;
 
-constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 1;
-constexpr int LEFT_1_CAN_ADDRESS =  3;
-constexpr int LEFT_2_CAN_ADDRESS =  0;
+constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 5;
+constexpr int LEFT_1_CAN_ADDRESS =  0;
+constexpr int LEFT_2_CAN_ADDRESS =  10;
 constexpr int RIGHT_1_CAN_ADDRESS = 2;
-constexpr int RIGHT_2_CAN_ADDRESS = 1;
+constexpr int RIGHT_2_CAN_ADDRESS = 11;
 
 constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kOnboard;
 constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kMXP;
+
+constexpr double DRIVE_OPENLOOP_RAMP = 0.5;
 
 // constexpr int DIO_ELEVATOR_TOP = 7;
 // constexpr int DIO_ELEVATOR_MID = 8; // TODO: assign ports

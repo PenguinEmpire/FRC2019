@@ -55,6 +55,15 @@ class Robot : public frc::TimedRobot {
     MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH, HOLD
   } elevatorDestination = MANUAL;
 
+  enum LimelightApproachState {
+    APPROACHING, CLOSE, AT, TOO_FAR
+  };
+
+  enum AlignPosition {
+    // CARGO_FACE, CARGO_LEFT, CARGO_RIGHT, ROCKET_CLOSE_LEFT, ROCKET_CLOSE_RIGHT, ROCKET_FAR_LEFT, ROCKET_FAR_RIGHT, 
+    CARGO_FACE, HATCH_PICKUP, ROCKET_MID, CARGO_SIDE, ROCKET_CLOSE, ROCKET_FAR
+  } alignDestination = CARGO_FACE;
+
   unordered_map<Robot::ElevatorDestination, int> elevatorHeights = {
     {MANUAL,          1 /* placeholder!!!! TODO */ },
     {MECHANICAL_LOW,  3660 /* placeholder!!!! TODO */ },
@@ -70,9 +79,17 @@ class Robot : public frc::TimedRobot {
     {HOLD,            1 /* placeholder!!!! TODO */}
   };
 
+  unordered_map<Robot::AlignPosition, double> alignAngles {
+    {CARGO_FACE, 0.0},
+    {HATCH_PICKUP, 180},
+    {ROCKET_MID, -90.0},
+    {CARGO_SIDE, 90.0},
+    {ROCKET_CLOSE, -33.5},
+    {ROCKET_FAR, -146.5}
+  };
 
   enum DistanceType {
-    LIDAR, ULTRASONIC
+    LIDAR, ULTRASONIC, ENCODER, NAVX
   };
 
 /*   struct pneumatic {
@@ -108,6 +125,7 @@ class Robot : public frc::TimedRobot {
   // Lift stage mag sensors
   DIO* elevatorZero;
   bool elevatorAtZero = false;
+  int elevatorCalibratingLoopCount = 0;
 
 /* deprecated
   DIO* liftBottom;
@@ -157,15 +175,13 @@ class Robot : public frc::TimedRobot {
   WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
   WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS};
 
-  frc::Spark Spark_l1{0};
-  frc::Spark Spark_l2{1};
-  frc::Spark Spark_r1{2};
-  frc::Spark Spark_r2{3};
+  // frc::Spark Spark_l1{0};
+  // frc::Spark Spark_l2{1};
+  // frc::Spark Spark_r1{2};
+  // frc::Spark Spark_r2{3};
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
   WPI_TalonSRX elevator{ELEVATOR_MOTOR_CAN_ADDRESS};
-  // frc::Spark elevatorSparkMotor{ELEVATOR_SPARK_PWM};
-
 
   // frc::DifferentialDrive drive{l1, r1};
 
@@ -178,6 +194,7 @@ class Robot : public frc::TimedRobot {
   frc::DoubleSolenoid intakeArm{pcm0, pch2, pch3};
   frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
   frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
+  frc::DoubleSolenoid jumper{1, 0, 1};
 
   // frc::PIDController straighten = frc::PIDController();
 
@@ -190,6 +207,7 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override;
+  void DisabledPeriodic() override;
 
   void TalonInit();
   void LineSensorInit();
@@ -208,11 +226,14 @@ class Robot : public frc::TimedRobot {
 
   void DriveLeft(double amount);
   void DriveRight(double amount);
+  void TurnLeft(double amount);
+  void TurnRight(double amount);
   void DriveBoth(double amount);
   void HandleJoysticks(); //TODO: better name
   void RunElevator();
   void RunElevator2();
-
+  void ChooseElevatorMode();
+  void ChooseAlignMode();
 
 
   // Utils:

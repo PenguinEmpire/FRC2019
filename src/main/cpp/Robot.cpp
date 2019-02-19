@@ -17,10 +17,10 @@ void Robot::RobotInit() {
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
-  Spark_l1.SetInverted(true);
-  Spark_l2.SetInverted(true);
-  Spark_r1.SetInverted(false);
-  Spark_r2.SetInverted(false);
+  // Spark_l1.SetInverted(true);
+  // Spark_l2.SetInverted(true);
+  // Spark_r1.SetInverted(false);
+  // Spark_r2.SetInverted(false);
 
   //-----------------------------------------------------------------------------------
 
@@ -75,6 +75,8 @@ void Robot::RobotPeriodic() { // runs after mode specific
   GetDistances();
 
   elevatorAtZero = !elevatorZero->Get();
+
+  // printf("\n");
 }
 
 /**
@@ -127,9 +129,36 @@ void Robot::TeleopPeriodic() {
   RunElevator(); 
   intakeMotor.Set(gamerJoystick.GetRawAxis(1));
 
+  // if (distances.ultrasonicL < 250 || distances.ultrasonicR < 250) {
+  //   l1.ConfigPeakOutputForward(0.0);
+  //   r1.ConfigPeakOutputForward(0.0);
+  // } else {
+  //   l1.ConfigPeakOutputForward(1.0);
+  //   r1.ConfigPeakOutputForward(1.0);
+  // }
+
 }
 
 void Robot::TestPeriodic() {}
+
+void Robot::DisabledPeriodic() {
+  rightJoystick.GetRawButtonPressed(1);
+
+  rightJoystick.GetRawButtonPressed(2);
+  rightJoystick.GetRawButtonPressed(3);
+  rightJoystick.GetRawButtonPressed(5);
+  rightJoystick.GetRawButtonPressed(4);
+
+  buttonJoystick.GetRawButtonPressed(8);
+  buttonJoystick.GetRawButtonPressed(8);
+  buttonJoystick.GetRawButtonPressed(9);
+  buttonJoystick.GetRawButtonPressed(10);
+  buttonJoystick.GetRawButtonPressed(11);  
+  buttonJoystick.GetRawButtonPressed(12);  
+
+  gamerJoystick.GetRawButtonPressed(6);
+  leftJoystick.GetRawButtonPressed(2);
+}
 
 //--------------------------
 
@@ -149,10 +178,10 @@ void Robot::TalonInit() {
 
 
 
-  l1.SetInverted(true);
-  // l2.SetInverted(true);
-  r1.SetInverted(false); 
-  // r2.SetInverted(false);
+  l1.SetInverted(false);
+  l2.SetInverted(false);
+  r1.SetInverted(true); 
+  r2.SetInverted(true);
 
   l2.Follow(l1);
   r2.Follow(r1);
@@ -162,8 +191,8 @@ void Robot::TalonInit() {
   l2.SetNeutralMode(NeutralMode::Brake);
   r2.SetNeutralMode(NeutralMode::Brake);
 
-  l1.ConfigOpenloopRamp(1.5, 10);
-  r1.ConfigOpenloopRamp(1.5, 10);
+  l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+  r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
 
   // r1.SetSafety
 
@@ -201,13 +230,23 @@ void Robot::DriveLeft(double amount) {
 void Robot::DriveRight(double amount) {
   r1.Set(ControlMode::PercentOutput, amount);
 }
+void Robot::TurnLeft(double amount) {
+  l1.Set(ControlMode::PercentOutput, -amount);
+  r1.Set(ControlMode::PercentOutput,  amount);
+}
+void Robot::TurnRight(double amount) {
+  l1.Set(ControlMode::PercentOutput,  amount);
+  r1.Set(ControlMode::PercentOutput, -amount);
+}
 void Robot::DriveBoth(double amount) {
   DriveLeft (amount);
   DriveRight(amount);
 }
 void Robot::HandleJoysticks() {
-  double left = leftJoystick.GetRawAxis(1);
-  double right = rightJoystick.GetRawAxis(1);
+  double left  = -leftJoystick.GetRawAxis(1);
+  double right = -rightJoystick.GetRawAxis(1);
+  frc::SmartDashboard::PutNumber("left", left);
+  frc::SmartDashboard::PutNumber("right", right);
   double both;
 
   if (driveInverted) {
@@ -222,6 +261,10 @@ void Robot::HandleJoysticks() {
   frc::SmartDashboard::PutNumber("ultraTol", ultraTol);
   frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
 
+  GetLimelight();
+
+  l1.ConfigOpenloopRamp(0.0);
+  r1.ConfigOpenloopRamp(0.0);
   if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
     Align(DistanceType::ULTRASONIC);
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
@@ -229,29 +272,34 @@ void Robot::HandleJoysticks() {
     Align(DistanceType::LIDAR);
     frc::SmartDashboard::PutBoolean("appr-lidar", true);
   } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
-    GetLimelight();
-    DriveLeft ( left_command * -0.7);
-    DriveRight(right_command * -0.7);
-
+    // GetLimelight();
+    DriveLeft ( left_command * 0.7);
+    DriveRight(right_command * 0.7);
+  } else if (leftJoystick.GetRawButton(6)) {
+    printf("calling align(navx)\n");
+    Align(DistanceType::NAVX);
   } else { // manual driving
+    // l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+    // r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
     frc::SmartDashboard::PutBoolean("appr-lidar", false);
 
     // Joystick Inputs for driving
-    if(fabs(left - right) < leftJoystick.GetRawAxis(3)) {
+    if(fabs(left - right) < 0.1 /* rightJoystick.GetRawAxis(3) */ ) { // !!!!!!
       both = (left + right) / 2;
       DriveBoth (calculateDampenedJoystick(both ));
-      Spark_l1.Set(both);
-      Spark_l2.Set(both);
-      Spark_r1.Set(both);
-      Spark_r2.Set(both);
+      // Spark_l1.Set(both);
+      // Spark_l2.Set(both);
+      // Spark_r1.Set(both);
+      // Spark_r2.Set(both);,
     } else {
       DriveLeft (calculateDampenedJoystick(left ));
-      Spark_l1.Set(left);
-      Spark_l2.Set(left);
+      // Spark_l1.Set(left);
+      // Spark_l2.Set(left);
       DriveRight(calculateDampenedJoystick(right));
-      Spark_r1.Set(right);
-      Spark_r2.Set(right);
+      // Spark_r1.Set(right);
+      // Spark_r2.Set(right);
     }
   }
 
@@ -260,30 +308,21 @@ void Robot::HandleJoysticks() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
 
-  if (buttonJoystick.GetRawButtonPressed(7)) {
-    elevatorDestination = HATCH_HIGH;  
-  } else if (buttonJoystick.GetRawButtonPressed(8)) {
-    elevatorDestination = BALL_HIGH;
-  } else if (buttonJoystick.GetRawButtonPressed(9)) {
-    elevatorDestination = HATCH_MID;
-  } else if (buttonJoystick.GetRawButtonPressed(10)) {
-    elevatorDestination = BALL_MID;
-  } else if (buttonJoystick.GetRawButtonPressed(11)) {
-    elevatorDestination = HATCH_LOW;
-  } else if (buttonJoystick.GetRawButtonPressed(12)) {
-    elevatorDestination = BALL_LOW;
-  } else if (gamerJoystick.GetRawButtonPressed(6)) {
-    elevatorDestination = MANUAL;
+  if (rightJoystick.GetRawButtonPressed(1)) {
+    ahrs->Reset();
   }
 
-  if (leftJoystick.GetRawButtonPressed(2)) {
-    Spark_l1.SetInverted(!Spark_l1.GetInverted());
-    Spark_l2.SetInverted(!Spark_l2.GetInverted()); 
-    Spark_r1.SetInverted(!Spark_r1.GetInverted());
-    Spark_r2.SetInverted(!Spark_r2.GetInverted());
+  ChooseElevatorMode();
+  ChooseAlignMode();
 
-    driveInverted = !driveInverted;
-  }
+  // if (leftJoystick.GetRawButtonPressed(2)) {
+  //   Spark_l1.SetInverted(!Spark_l1.GetInverted());
+  //   Spark_l2.SetInverted(!Spark_l2.GetInverted()); 
+  //   Spark_r1.SetInverted(!Spark_r1.GetInverted());
+  //   Spark_r2.SetInverted(!Spark_r2.GetInverted());
+
+  //   driveInverted = !driveInverted;
+  // }
 }
 
 void Robot::RunElevator() {
@@ -295,18 +334,24 @@ void Robot::RunElevator() {
   frc::SmartDashboard::PutNumber("absPos2", absPos2);
   
   if (elevatorState == CALIBRATING) {
+    elevatorCalibratingLoopCount += 1;
     printf("in elevator calibrating\n");
-    if (!elevatorAtZero) {
-      printf("in cali - not at zero\n");
-      // elevator.Set(ControlMode::Velocity, -0.0001);
-      elevator.Set(ControlMode::PercentOutput, -0.8);
+    if (elevatorCalibratingLoopCount < 325) {
+      if (!elevatorAtZero) {
+        printf("in cali - not at zero\n");
+        // elevator.Set(ControlMode::Velocity, -0.0001);
+        elevator.Set(ControlMode::PercentOutput, -0.6);
+      } else {
+        printf("in cali - else (at zero)\n");
+        elevator.Set(ControlMode::PercentOutput, 0.0);
+        // elevator.SetSelectedSensorPosition(0, 0, 10);
+        elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
+        elevator.SetSelectedSensorPosition(0, 0, 10);
+        elevatorState = NORMAL;
+      }
     } else {
-      printf("in cali - else (at zero)\n");
+      printf("in cali too long\n");
       elevator.Set(ControlMode::PercentOutput, 0.0);
-      // elevator.SetSelectedSensorPosition(0, 0, 10);
-      elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
-      elevator.SetSelectedSensorPosition(0, 0, 10);
-      elevatorState = NORMAL;
     }
   } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
     int _pos;
@@ -317,7 +362,7 @@ void Robot::RunElevator() {
         break;
       case MANUAL:
         printf("setting to gamerjoystick\n");
-        elevator.Set(ControlMode::PercentOutput, -gamerJoystick.GetRawAxis(5) + 0.2);
+        elevator.Set(ControlMode::PercentOutput, (-gamerJoystick.GetRawAxis(5) /*+ 0.2*/) );
         break;
       case MECHANICAL_LOW:
         break;
@@ -367,6 +412,43 @@ void Robot::RunElevator() {
   } 
 }
 
+void Robot::RunElevator2() {
+  elevator.Set(ControlMode::PercentOutput, -gamerJoystick.GetRawAxis(5));
+}
+
+void Robot::ChooseElevatorMode() {
+  if (buttonJoystick.GetRawButtonPressed(7)) {
+    elevatorDestination = HATCH_HIGH;  
+  } else if (buttonJoystick.GetRawButtonPressed(8)) {
+    elevatorDestination = BALL_HIGH;
+  } else if (buttonJoystick.GetRawButtonPressed(9)) {
+    elevatorDestination = HATCH_MID;
+  } else if (buttonJoystick.GetRawButtonPressed(10)) {
+    elevatorDestination = BALL_MID;
+  } else if (buttonJoystick.GetRawButtonPressed(11)) {
+    elevatorDestination = HATCH_LOW;
+  } else if (buttonJoystick.GetRawButtonPressed(12)) {
+    elevatorDestination = BALL_LOW;
+  } else if (gamerJoystick.GetRawButtonPressed(6)) {
+    elevatorDestination = MANUAL;
+  }
+}
+
+void Robot::ChooseAlignMode() {
+  if (buttonJoystick.GetRawButtonPressed(1)) {
+    alignDestination = CARGO_FACE;
+  } else if (buttonJoystick.GetRawButtonPressed(5)) {
+    alignDestination = ROCKET_MID;
+  } else if (buttonJoystick.GetRawButtonPressed(3)) {
+    alignDestination = ROCKET_CLOSE;
+  } else if (buttonJoystick.GetRawButtonPressed(6)) {
+    alignDestination = ROCKET_FAR;
+  } else if (buttonJoystick.GetRawButtonPressed(4)) {
+    alignDestination = CARGO_SIDE;
+  } else if (buttonJoystick.GetRawButtonPressed(2)) {
+    alignDestination = HATCH_PICKUP;
+  }
+}
 
 void Robot::ShiftGears(Robot::Direction dir, frc::DoubleSolenoid& solenoid) {
   frc::DoubleSolenoid::Value state;
@@ -406,8 +488,8 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
 
 void Robot::GetDistances() {
   // LIDAR
-  distances.lidarL = leftLidar->AquireDistance();
-  distances.lidarR = rightLidar->AquireDistance();  
+  // distances.lidarL = leftLidar->AquireDistance();
+  // distances.lidarR = rightLidar->AquireDistance();  
 
   // ULTRASONIC
   //   ultrasonic class
@@ -476,9 +558,12 @@ void Robot::GetLimelight() {
   float tx = limelight->GetNumber("tx", 0.0);
   float ty = limelight->GetNumber("ty", 0.0);
 
-  double P_align = 0.15 * toleranceScalar;
-  left_command  = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
-  right_command = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
+  double P_align = 0.35 * toleranceScalar;
+  left_command  = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
+  right_command = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
+
+  left_command  /= 6.0;
+  right_command /= 6.0;
 
  
 
@@ -507,9 +592,9 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
   // 700 -- -700
 
   double go;
-  if (type == lidar) {
+  if (type == LIDAR) {
     go = linearMap(dif, -100, 100, 0.85, -0.85);
-  } else if (type == ultrasonic) {
+  } else if (type == ULTRASONIC) {
     go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
   };
 
@@ -523,6 +608,8 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
 }
 
 void Robot::Align(Robot::DistanceType type) {
+  printf("in align\n");
+  printf(type == NAVX ? "type : navx\n" : "other\n");
   // double kP = 1.0;
   // double kI = 0.0;
   // double kD = 0.0;
@@ -535,7 +622,8 @@ void Robot::Align(Robot::DistanceType type) {
     left = distances.lidarL;
     right = distances.lidarR;
     tolerance = 80 * toleranceScalar;
-  } else if (type = ULTRASONIC) {
+  } else if (type == ULTRASONIC) {
+    printf("calculating ultrasonic vals\n");
     left = distances.ultrasonicL;
     right = distances.ultrasonicR;
     tolerance = 240 * toleranceScalar;
@@ -554,24 +642,64 @@ void Robot::Align(Robot::DistanceType type) {
   // 700 -- -700
 
   double go;
-  if (type == lidar) {
+  if (type == LIDAR) {
+    printf("in lidar align\n");
     go = linearMap(dif, -100, 100, 0.85, -0.85);
-  } else if (type == ultrasonic) {
+  } else if (type == ULTRASONIC) {
+    printf("in ultra align\n");
     go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
-  };
+  } else if (type == NAVX) {
+    printf("in navx align\n");
+
+    double deg = ahrs->GetYaw();
+    double speed = 0.65;
+    double alignTol = 4.25;
+
+    int angleScalar;
+    if (gamerJoystick.GetRawButton(1)) {
+      angleScalar = -1;
+    } else {
+      angleScalar = 1;
+    }
+
+    double target = angleScalar * alignAngles[alignDestination];
+
+    printf("target: %f", target);
+
+    if (-180 < deg && deg < target - alignTol) {
+      printf("turning right to %f\n", target);
+      TurnRight(speed);
+    } else if (target + alignTol < deg) {
+      printf("turning left to %f\n", target);
+      TurnLeft(speed);
+    // } 
+    // else if (0 < deg && deg < 85) {
+    //   printf("turning right to +90\n");
+    //   TurnRight(speed);
+    // } else if (95 < deg && deg < 180) {
+    //   printf("turning left to +90\n");
+    //   TurnLeft(speed);
+    } else {
+      DriveBoth(0.0);
+      printf("what?? (aligned?)\n");
+    }
+  }
+
 
   frc::SmartDashboard::PutNumber("dis| go", go);
   frc::SmartDashboard::PutNumber("dis| dif", dif);
 
-  if (fabs(dif) > tolerance) {
-    DriveLeft ( go);
-    DriveRight(-go);
+  if (type == LIDAR || type == ULTRASONIC) {
+    printf("actual align - bad\n");
+    if (fabs(dif) > tolerance) {
+      DriveLeft (-go);
+      DriveRight( go);
+    }
   }
 
 }
 
 void Robot::LidarInit() {}
-
 
 double Robot::calculateDampenedJoystick(double rawAxisValue) {
   double dampening;
@@ -622,26 +750,26 @@ void Robot::Testing() {
   frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
   frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
 
-  frc::SmartDashboard::PutString("elevatorState", elevatorState == CALIBRATING ? "cali" : (elevatorState == NORMAL ? "norm" : "other"));
-  frc::SmartDashboard::PutString("elevatorDestination", elevatorDestination == MANUAL ? "manual" : (elevatorDestination == HOLD ? "hold" : (elevatorDestination == HATCH_MID ? "hatch_mid" : "other")));
+  // frc::SmartDashboard::PutString("elevatorState", elevatorState == CALIBRATING ? "cali" : (elevatorState == NORMAL ? "norm" : "other"));
+  // frc::SmartDashboard::PutString("elevatorDestination", elevatorDestination == MANUAL ? "manual" : (elevatorDestination == HOLD ? "hold" : (elevatorDestination == HATCH_MID ? "hatch_mid" : "other")));
 
-  frc::SmartDashboard::PutNumber("gamer-5", gamerJoystick.GetRawAxis(5));
+  // frc::SmartDashboard::PutNumber("gamer-5", gamerJoystick.GetRawAxis(5));
   
   // frc::SmartDashboard::PutNumber( "ahrs->GetPitch()                ", ahrs->GetPitch()                );
   // frc::SmartDashboard::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetYaw()                  ", ahrs->GetYaw()                  );
+  frc::SmartDashboard::PutNumber( "ahrs->GetYaw()                  ", ahrs->GetYaw()                  );
   // frc::SmartDashboard::PutBoolean("ahrs->IsCalibrating()           ", ahrs->IsCalibrating()           );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelX()    ", ahrs->GetWorldLinearAccelX()    );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelY()    ", ahrs->GetWorldLinearAccelY()    );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelZ()    ", ahrs->GetWorldLinearAccelZ()    );
-  // frc::SmartDashboard::PutBoolean("ahrs->IsMoving()                ", ahrs->IsMoving()                );
-  // frc::SmartDashboard::PutBoolean("ahrs->IsRotating()              ", ahrs->IsRotating()              );
+  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelX()    ", ahrs->GetWorldLinearAccelX()    );
+  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelY()    ", ahrs->GetWorldLinearAccelY()    );
+  frc::SmartDashboard::PutNumber( "ahrs->GetWorldLinearAccelZ()    ", ahrs->GetWorldLinearAccelZ()    );
+  frc::SmartDashboard::PutBoolean("ahrs->IsMoving()                ", ahrs->IsMoving()                );
+  frc::SmartDashboard::PutBoolean("ahrs->IsRotating()              ", ahrs->IsRotating()              );
   // frc::SmartDashboard::PutBoolean("ahrs->IsMagnetometerCalibrated()", ahrs->IsMagnetometerCalibrated());
-  // frc::SmartDashboard::PutNumber( "ahrs->GetAngle()                ", ahrs->GetAngle()                );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetRate()                 ", ahrs->GetRate()                 );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
-  // frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
+  frc::SmartDashboard::PutNumber( "ahrs->GetAngle()                ", ahrs->GetAngle()                );
+  frc::SmartDashboard::PutNumber( "ahrs->GetRate()                 ", ahrs->GetRate()                 );
+  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
+  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
+  frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
   
   
 }
