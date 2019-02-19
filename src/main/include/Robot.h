@@ -147,6 +147,7 @@ class Robot : public frc::TimedRobot {
   Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
   Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
 
+  #if ULTRA_EXIST
 //  ## ULTRASONICS ##
 /* plugging ultrasonics into other types of ports - experimental
   frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
@@ -157,30 +158,39 @@ class Robot : public frc::TimedRobot {
 */
   frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(ULTRASONIC_R_ANALOG_IN);
   frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(ULTRASONIC_L_ANALOG_IN);
+  #endif
 
-  struct distance {
-    int lidarL;
-    int lidarR;
-    int ultrasonicL;
-    int ultrasonicR;
+  struct distances {
+    // int lidarL;
+    // int lidarR;
+    // int ultrasonicL;
+    // int ultrasonicR;
     double left;
     double right;
-  } distances, limelightDist;
+    double total;
+    double average() {
+      return (left + right) / 2.0;
+    }
+  } ultraDist, lidarDist, limelightDist;
 
 
   // MOTOR CONTROLLERS
   // Talons
+
+  #if COMP_ROBOT
   WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
   WPI_VictorSPX l2{LEFT_2_CAN_ADDRESS};
   WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
   WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS};
 
-  // frc::Spark Spark_l1{0};
-  // frc::Spark Spark_l2{1};
-  // frc::Spark Spark_r1{2};
-  // frc::Spark Spark_r2{3};
+  #else
+  frc::Spark Spark_l1{L1_SPARK_PWM};
+  frc::Spark Spark_l2{L2_SPARK_PWM};
+  frc::Spark Spark_r1{R1_SPARK_PWM};
+  frc::Spark Spark_r2{R2_SPARK_PWM};
+  #endif
 
-  frc::Spark intakeMotor{INTAKE_MOTOR_PWM_PORT};
+  frc::Spark intakeMotor{INTAKE_MOTOR_PWM};
   WPI_TalonSRX elevator{ELEVATOR_MOTOR_CAN_ADDRESS};
 
   // frc::DifferentialDrive drive{l1, r1};
@@ -234,6 +244,8 @@ class Robot : public frc::TimedRobot {
   void RunElevator2();
   void ChooseElevatorMode();
   void ChooseAlignMode();
+
+  void StopForwardMovement();
 
 
   // Utils:

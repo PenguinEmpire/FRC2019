@@ -43,28 +43,38 @@ constexpr int can6 = 6;
 constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
- 
-constexpr int INTAKE_MOTOR_PWM_PORT = 0;
+
+#define COMP_ROBOT      true
+#define LIDAR_EXIST     false
+#define ULTRA_EXIST     false
+#define LIMELIGHT_EXIST false
+
+// COMP ROBOT VALUES
+#if COMP_ROBOT
+    constexpr int LEFT_1_CAN_ADDRESS  =  0;
+    constexpr int LEFT_2_CAN_ADDRESS  = 10;
+    constexpr int RIGHT_1_CAN_ADDRESS =  2;
+    constexpr int RIGHT_2_CAN_ADDRESS = 11;
+#else
+    constexpr int L1_SPARK_PWM = 1;
+    constexpr int L2_SPARK_PWM = 2;
+    constexpr int R1_SPARK_PWM = 3;
+    constexpr int R2_SPARK_PWM = 4;
+#endif
+
+constexpr int INTAKE_MOTOR_PWM = 0;
+constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 5;
 
 constexpr int ELEVATOR_ZERO_HALL_DIO = 4;
 
 constexpr int ULTRASONIC_R_ANALOG_IN = 1;
 constexpr int ULTRASONIC_L_ANALOG_IN = 0;
 
-constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 5;
-constexpr int LEFT_1_CAN_ADDRESS =  0;
-constexpr int LEFT_2_CAN_ADDRESS =  10;
-constexpr int RIGHT_1_CAN_ADDRESS = 2;
-constexpr int RIGHT_2_CAN_ADDRESS = 11;
-
 constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kOnboard;
 constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kMXP;
 
 constexpr double DRIVE_OPENLOOP_RAMP = 0.5;
 
-// constexpr int DIO_ELEVATOR_TOP = 7;
-// constexpr int DIO_ELEVATOR_MID = 8; // TODO: assign ports
-// constexpr int DIO_ELEVATOR_BOTTOM = 9;
 
 /** # where the pneumatics are plugged in
  * driveGearboxes{pcm0, pch0, pch1};

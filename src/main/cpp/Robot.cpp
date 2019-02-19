@@ -30,8 +30,10 @@ void Robot::RobotInit() {
   // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
   // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
   // LineSensorInit();
+  #if ULTRA_EXIST
   // serialUltrasonic->EnableTermination((char)31);
   // serialUltrasonic->Reset();
+  #endif
 */
 
   frc::SmartDashboard::PutNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
@@ -40,11 +42,12 @@ void Robot::RobotInit() {
 
   elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
 
+  #if ULTRA_EXIST
   analogUltrasonicR->InitAccumulator();
   analogUltrasonicR->ResetAccumulator();
   analogUltrasonicL->InitAccumulator();
   analogUltrasonicL->ResetAccumulator();
- 
+  #endif 
 
   leftEnc.SetDistancePerPulse(PULSE_IN);
   rightEnc.SetDistancePerPulse(PULSE_IN);
@@ -129,14 +132,7 @@ void Robot::TeleopPeriodic() {
   RunElevator(); 
   intakeMotor.Set(gamerJoystick.GetRawAxis(1));
 
-  // if (distances.ultrasonicL < 250 || distances.ultrasonicR < 250) {
-  //   l1.ConfigPeakOutputForward(0.0);
-  //   r1.ConfigPeakOutputForward(0.0);
-  // } else {
-  //   l1.ConfigPeakOutputForward(1.0);
-  //   r1.ConfigPeakOutputForward(1.0);
-  // }
-
+  StopForwardMovement();
 }
 
 void Robot::TestPeriodic() {}
@@ -163,10 +159,12 @@ void Robot::DisabledPeriodic() {
 //--------------------------
 
 void Robot::TalonInit() {
+  #if COMP_ROBOT
   l1.ConfigFactoryDefault();
   l2.ConfigFactoryDefault();
   r1.ConfigFactoryDefault();
   r2.ConfigFactoryDefault();
+  #endif
   elevator.ConfigFactoryDefault();
 
   elevator.ConfigOpenloopRamp(0.05);
@@ -177,7 +175,7 @@ void Robot::TalonInit() {
   elevator.Config_kD(0, 80, 10);
 
 
-
+  #if COMP_ROBOT
   l1.SetInverted(false);
   l2.SetInverted(false);
   r1.SetInverted(true); 
@@ -195,9 +193,14 @@ void Robot::TalonInit() {
   r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
 
   // r1.SetSafety
+  #endif
 
   elevator.SetNeutralMode(NeutralMode::Brake);
-  elevator.SetInverted(true);
+  #if COMP_ROBOT
+    elevator.SetInverted(true);
+  #else
+    elevator.SetInverted(true); // TODO
+  #endif
   elevator.SetSensorPhase(true); 
 
   elevator.ConfigPeakOutputReverse(-1.0);
@@ -225,18 +228,43 @@ void Robot::LineSensorInit() /* all commented out - deprecated */ {
 }
 
 void Robot::DriveLeft(double amount) {
+  #if COMP_ROBOT
   l1.Set(ControlMode::PercentOutput, amount);
+  #else
+  Spark_l1.Set(amount);
+  Spark_l2.Set(amount);
+  #endif
 }
 void Robot::DriveRight(double amount) {
+  #if COMP_ROBOT
   r1.Set(ControlMode::PercentOutput, amount);
+  #else
+  Spark_r1.Set(amount);
+  Spark_r2.Set(amount);
+  #endif
 }
 void Robot::TurnLeft(double amount) {
+  #if COMP_ROBOT
   l1.Set(ControlMode::PercentOutput, -amount);
   r1.Set(ControlMode::PercentOutput,  amount);
+  #else
+  Spark_l1.Set(-amount);
+  Spark_l2.Set(-amount);
+  Spark_r1.Set( amount);
+  Spark_r2.Set( amount);
+  #endif
+
 }
 void Robot::TurnRight(double amount) {
+  #if COMP_ROBOT
   l1.Set(ControlMode::PercentOutput,  amount);
   r1.Set(ControlMode::PercentOutput, -amount);
+  #else
+  Spark_l1.Set( amount);
+  Spark_l2.Set( amount);
+  Spark_r1.Set(-amount);
+  Spark_r2.Set(-amount);
+  #endif
 }
 void Robot::DriveBoth(double amount) {
   DriveLeft (amount);
@@ -261,26 +289,44 @@ void Robot::HandleJoysticks() {
   frc::SmartDashboard::PutNumber("ultraTol", ultraTol);
   frc::SmartDashboard::PutNumber("lidarTol", lidarTol);
 
-  GetLimelight();
+  #if LIMELIGHT_EXIST
+    GetLimelight();
+  #endif
 
-  l1.ConfigOpenloopRamp(0.0);
-  r1.ConfigOpenloopRamp(0.0);
+  #if COMP_ROBOT
+    l1.ConfigOpenloopRamp(0.0);
+    r1.ConfigOpenloopRamp(0.0);
+  #endif
+
   if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
-    Align(DistanceType::ULTRASONIC);
-    frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
+    #if ULTRA_EXIST
+      Align(DistanceType::ULTRASONIC);
+      frc::SmartDashboard::PutBoolean("appr-ultrasonic", true);
+    #else
+      printf("ultra align not possible: line %i\n", __LINE__);
+    #endif
   } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
-    Align(DistanceType::LIDAR);
-    frc::SmartDashboard::PutBoolean("appr-lidar", true);
+    #if LIDAR_EXIST
+      Align(DistanceType::LIDAR);
+      frc::SmartDashboard::PutBoolean("appr-lidar", true);
+    #else
+      printf("lidar align not possible: line %i\n", __LINE__);
+    #endif
   } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
-    // GetLimelight();
-    DriveLeft ( left_command * 0.7);
-    DriveRight(right_command * 0.7);
+    #if LIMELIGHT_EXIST
+      DriveLeft ( left_command * 0.7);
+      DriveRight(right_command * 0.7);
+    #else
+      printf("limelight align/approach not allowed: line %i\n", __LINE__);
+    #endif
   } else if (leftJoystick.GetRawButton(6)) {
     printf("calling align(navx)\n");
     Align(DistanceType::NAVX);
   } else { // manual driving
+    #if COMP_ROBOT
     // l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     // r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+    #endif
 
     frc::SmartDashboard::PutBoolean("appr-ultrasonic", false);
     frc::SmartDashboard::PutBoolean("appr-lidar", false);
@@ -289,17 +335,9 @@ void Robot::HandleJoysticks() {
     if(fabs(left - right) < 0.1 /* rightJoystick.GetRawAxis(3) */ ) { // !!!!!!
       both = (left + right) / 2;
       DriveBoth (calculateDampenedJoystick(both ));
-      // Spark_l1.Set(both);
-      // Spark_l2.Set(both);
-      // Spark_r1.Set(both);
-      // Spark_r2.Set(both);,
     } else {
       DriveLeft (calculateDampenedJoystick(left ));
-      // Spark_l1.Set(left);
-      // Spark_l2.Set(left);
       DriveRight(calculateDampenedJoystick(right));
-      // Spark_r1.Set(right);
-      // Spark_r2.Set(right);
     }
   }
 
@@ -315,14 +353,21 @@ void Robot::HandleJoysticks() {
   ChooseElevatorMode();
   ChooseAlignMode();
 
-  // if (leftJoystick.GetRawButtonPressed(2)) {
-  //   Spark_l1.SetInverted(!Spark_l1.GetInverted());
-  //   Spark_l2.SetInverted(!Spark_l2.GetInverted()); 
-  //   Spark_r1.SetInverted(!Spark_r1.GetInverted());
-  //   Spark_r2.SetInverted(!Spark_r2.GetInverted());
+  if (leftJoystick.GetRawButtonPressed(2)) {
+    #if COMP_ROBOT
+      l1.SetInverted(!l1.GetInverted());
+      l2.SetInverted(!l2.GetInverted());
+      r1.SetInverted(!r1.GetInverted());
+      r2.SetInverted(!r2.GetInverted());
+    #else
+      Spark_l1.SetInverted(!Spark_l1.GetInverted());
+      Spark_l2.SetInverted(!Spark_l2.GetInverted()); 
+      Spark_r1.SetInverted(!Spark_r1.GetInverted());
+      Spark_r2.SetInverted(!Spark_r2.GetInverted());
+    #endif
 
-  //   driveInverted = !driveInverted;
-  // }
+    driveInverted = !driveInverted;
+  }
 }
 
 void Robot::RunElevator() {
@@ -485,19 +530,43 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
   ShiftGears(state, solenoid);
 }
 
+void Robot::StopForwardMovement() {
+  Robot::distances distSource;
+  #if LIDAR_EXIST
+  distSource = lidarDist;
+  #elif ULTRA_EXIST
+  distSource = ultraDist;
+  #endif
+
+  #if ULTRA_EXIST
+    if (distSource.left < 250 || ultraDist.right < 250) {
+      l1.ConfigPeakOutputForward(0.0);
+      r1.ConfigPeakOutputForward(0.0);
+    } else {
+      l1.ConfigPeakOutputForward(1.0);
+      r1.ConfigPeakOutputForward(1.0);
+    }
+  #endif
+
+}
+
 
 void Robot::GetDistances() {
   // LIDAR
-  // distances.lidarL = leftLidar->AquireDistance();
-  // distances.lidarR = rightLidar->AquireDistance();  
+  #if LIDAR_EXIST
+  lidarDist.left = leftLidar->AquireDistance();
+  lidarDist.right = rightLidar->AquireDistance();  
+  #endif
 
   // ULTRASONIC
   //   ultrasonic class
-  // distances.ultrasonicL = leftUltrasonic->GetRangeInches();
-  // distances.ultrasonicR = rightUltrasonic->GetRangeInches();
+  // ultraDist.left  = leftUltrasonic->GetRangeInches();
+  // ultraDist.right = rightUltrasonic->GetRangeInches();
   //   analoginput class
-  distances.ultrasonicL = analogUltrasonicL->GetAverageValue();
-  distances.ultrasonicR = analogUltrasonicR->GetAverageValue();
+  #if ULTRA_EXIST
+  ultraDist.left  = analogUltrasonicL->GetAverageValue();
+  ultraDist.right = analogUltrasonicR->GetAverageValue();
+  #endif
   // int gotValueR = analogUltrasonicR->GetValue();
   // int gotValueL = analogUltrasonicL->GetValue();
   
@@ -513,10 +582,11 @@ void Robot::GetDistances() {
 }
 
 void Robot::GetLimelight() {
-  double targetOffsetAngle_Horizontal = limelight->GetNumber("tx", 0.0);
-  double targetOffsetAngle_Vertical = limelight->GetNumber("ty", 0.0);
-  double targetArea = limelight->GetNumber("ta", 0.0);
-  double targetSkew = limelight->GetNumber("ts", 0.0);
+  #if LIMELIGHT_EXIST
+  // double targetOffsetAngle_Horizontal = limelight->GetNumber("tx", 0.0);
+  // double targetOffsetAngle_Vertical = limelight->GetNumber("ty", 0.0);
+  // double targetArea = limelight->GetNumber("ta", 0.0);
+  // double targetSkew = limelight->GetNumber("ts", 0.0);
 
   /** ESTIMATING DISTANCE
    * d = (h2-h1) / tan(a1+a2)
@@ -563,14 +633,12 @@ void Robot::GetLimelight() {
   right_command = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
 
   left_command  /= 6.0;
-  right_command /= 6.0;
-
- 
+  right_command /= 6.0; 
 
   frc::SmartDashboard::PutNumber("left_command", left_command);
   frc::SmartDashboard::PutNumber("right_command", right_command);
   frc::SmartDashboard::PutNumber("P_align", P_align);
-
+  #endif
 }  
 
 /* deprecated */
@@ -619,14 +687,22 @@ void Robot::Align(Robot::DistanceType type) {
   int tolerance;
 
   if (type == LIDAR) {
-    left = distances.lidarL;
-    right = distances.lidarR;
-    tolerance = 80 * toleranceScalar;
+    #if LIDAR_EXIST
+      left  = lidarDist.left;
+      right = lidarDist.right;
+      tolerance = 80 * toleranceScalar;
+    #else
+      printf("no lidar - can't lidar align (line %i)\n", __LINE__);
+    #endif
   } else if (type == ULTRASONIC) {
-    printf("calculating ultrasonic vals\n");
-    left = distances.ultrasonicL;
-    right = distances.ultrasonicR;
-    tolerance = 240 * toleranceScalar;
+    #if ULTRA_EXIST
+      printf("calculating ultrasonic vals\n");
+      left  = ultraDist.left;
+      right = ultraDist.right;
+      tolerance = 240 * toleranceScalar;
+    #else
+      printf("no ultra - can't ultra align (line %i)\n", __LINE__);
+    #endif
   }
 
   double dif = left - right;
@@ -643,11 +719,15 @@ void Robot::Align(Robot::DistanceType type) {
 
   double go;
   if (type == LIDAR) {
-    printf("in lidar align\n");
-    go = linearMap(dif, -100, 100, 0.85, -0.85);
+    #if LIDAR_EXIST
+      printf("in lidar align\n");
+      go = linearMap(dif, -100, 100, 0.85, -0.85);
+    #endif
   } else if (type == ULTRASONIC) {
-    printf("in ultra align\n");
-    go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
+    #if ULTRA_EXIST
+      printf("in ultra align\n");
+      go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
+    #endif
   } else if (type == NAVX) {
     printf("in navx align\n");
 
@@ -689,12 +769,14 @@ void Robot::Align(Robot::DistanceType type) {
   frc::SmartDashboard::PutNumber("dis| go", go);
   frc::SmartDashboard::PutNumber("dis| dif", dif);
 
-  if (type == LIDAR || type == ULTRASONIC) {
-    printf("actual align - bad\n");
+  if ((type == LIDAR && LIDAR_EXIST) || (type == ULTRASONIC && ULTRA_EXIST)) {
+    #if LIDAR_EXIST || ULTRA_EXIST
+    printf("actual align\n");
     if (fabs(dif) > tolerance) {
       DriveLeft (-go);
       DriveRight( go);
     }
+    #endif
   }
 
 }
@@ -745,10 +827,15 @@ void Robot::Testing() {
   // frc::SmartDashboard::PutNumber("lineSensorRight", lineSensorRight->GetAverageValue());
   // frc::SmartDashboard::PutNumber("lineSensornavx4", lineSensornavx4->GetAverageValue());
 
-  frc::SmartDashboard::PutNumber("dist.ultraR", distances.ultrasonicR);
-  frc::SmartDashboard::PutNumber("dist.ultraL", distances.ultrasonicL);
-  frc::SmartDashboard::PutNumber("dist.lidarR", distances.lidarR);
-  frc::SmartDashboard::PutNumber("dist.lidarL", distances.lidarL);
+  #if ULTRA_EXIST
+  frc::SmartDashboard::PutNumber("dist.ultraR", ultraDist.left);
+  frc::SmartDashboard::PutNumber("dist.ultraL", ultraDist.right);
+  #endif
+
+  #if LIDAR_EXIST
+  frc::SmartDashboard::PutNumber("dist.lidarR", lidarDist.left);
+  frc::SmartDashboard::PutNumber("dist.lidarL", lidarDist.right);
+  #endif
 
   // frc::SmartDashboard::PutString("elevatorState", elevatorState == CALIBRATING ? "cali" : (elevatorState == NORMAL ? "norm" : "other"));
   // frc::SmartDashboard::PutString("elevatorDestination", elevatorDestination == MANUAL ? "manual" : (elevatorDestination == HOLD ? "hold" : (elevatorDestination == HATCH_MID ? "hatch_mid" : "other")));
