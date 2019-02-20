@@ -52,7 +52,19 @@ class Robot : public frc::TimedRobot {
   } elevatorState = CALIBRATING;
 
   enum ElevatorDestination {
-    MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH, HOLD
+    MECHANICAL_LOW,
+    PICKUP,
+    HATCH_CARGO,
+    HATCH_LOW,
+    BALL_LOW,
+    BALL_CARGO,
+    HATCH_MID,
+    BALL_MID,
+    HATCH_HIGH,
+    BALL_HIGH,
+    MANUAL,
+    HOLD
+    // MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH, HOLD
   } elevatorDestination = MANUAL;
 
   enum LimelightApproachState {
@@ -65,18 +77,18 @@ class Robot : public frc::TimedRobot {
   } alignDestination = CARGO_FACE;
 
   unordered_map<Robot::ElevatorDestination, int> elevatorHeights = {
-    {MANUAL,          1 /* placeholder!!!! TODO */ },
-    {MECHANICAL_LOW,  3660 /* placeholder!!!! TODO */ },
-    {PICKUP,          1 /* placeholder!!!! TODO */ },
-    {BALL_CARGO,      1 /* placeholder!!!! TODO */ },
-    {HATCH_CARGO,     1 /* placeholder!!!! TODO */ },
-    {HATCH_LOW,  -1000},
-    {HATCH_MID,   12000},
-    {HATCH_HIGH,  24200},
-    {BALL_LOW,    4100 },
-    {BALL_MID,    16800},
-    {BALL_HIGH,   28550},
-    {HOLD,            1 /* placeholder!!!! TODO */}
+      {MANUAL,          1 /* placeholder!!!! TODO */ },
+      {MECHANICAL_LOW,  3660 /* placeholder!!!! TODO */ },
+      {PICKUP,          1 /* placeholder!!!! TODO */ },
+      {BALL_CARGO,      1 /* placeholder!!!! TODO */ },
+      {HATCH_CARGO,     1 /* placeholder!!!! TODO */ },
+      {HATCH_LOW,  -1000},
+      {HATCH_MID,   12000},
+      {HATCH_HIGH,  24200},
+      {BALL_LOW,    4100 },
+      {BALL_MID,    16800},
+      {BALL_HIGH,   28550},
+      {HOLD,            1 /* placeholder!!!! TODO */}
   };
 
   unordered_map<Robot::AlignPosition, double> alignAngles {
@@ -92,23 +104,32 @@ class Robot : public frc::TimedRobot {
     LIDAR, ULTRASONIC, ENCODER, NAVX
   };
 
-/*   struct pneumatic {
+/*
+  struct Pneumatic {
     frc::DoubleSolenoid solenoid;
     Robot::Direction currentDir;
     
-    pneumatic(int pcm, int pch_1, int pch_2, Direction startDir) {
-      solenoid = frc::DoubleSolenoid::DoubleSolenoid(pcm, pch_1, pch_2);
+    Pneumatic(int pcm, int pch_1, int pch_2, Direction startDir) {
+      solenoid = frc::DoubleSolenoid{pcm, pch_1, pch_2};
       currentDir = startDir;
     }
-    ~pneumatic() = delete;
+
+    void Toggle() {
+      frc::DoubleSolenoid::Value state = solenoid.Get();
+      auto map = Robot::reverseStates;
+      state = map[state];
+      solenoid.Set(state);
+    }    
   };
 */
 
   bool driveInverted = false;
 
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
-  std::shared_ptr<NetworkTable> limelight = inst.GetTable("limelight");
-  // std::shared_ptr<NetworkTable> dash = inst.GetTable("SmartDashboard");
+  #if LIMELIGHT_EXIST 
+    std::shared_ptr<NetworkTable> limelight = inst.GetTable("limelight");
+  #endif
+  std::shared_ptr<NetworkTable> dash = inst.GetTable("SmartDashboard");
 
   double left_command  = 0.0;
   double right_command = 0.0;
@@ -123,8 +144,10 @@ class Robot : public frc::TimedRobot {
   // # ONBOARD #
   // SENSORS
   // Lift stage mag sensors
-  DIO* elevatorZero;
-  bool elevatorAtZero = false;
+  #if ELEVATOR_SENSOR_EXIST
+    DIO* elevatorZero;
+    bool elevatorAtZero = false;
+  #endif
   int elevatorCalibratingLoopCount = 0;
 
 /* deprecated
@@ -144,20 +167,22 @@ class Robot : public frc::TimedRobot {
   frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
 */
 
-  Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
-  Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
+  #if LIDAR_EXIST
+    Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
+    Lidar* rightLidar = new Lidar(RIGHT_LIDAR_PORT /* maybe need to put in address */);
+  #endif
 
   #if ULTRA_EXIST
 //  ## ULTRASONICS ##
-/* plugging ultrasonics into other types of ports - experimental
-  frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
-  frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
-  DIO* leftDioUltrasonic;
-  DIO* rightDioUltrasonic;
-  frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
-*/
-  frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(ULTRASONIC_R_ANALOG_IN);
-  frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(ULTRASONIC_L_ANALOG_IN);
+  /* plugging ultrasonics into other types of ports - experimental
+    frc::Ultrasonic* leftUltrasonic = new frc::Ultrasonic(LEFT_ULTRASONIC_PING_CHANNEL, LEFT_ULTRASONIC_ECHO_CHANNEL);
+    frc::Ultrasonic* rightUltrasonic = new frc::Ultrasonic(RIGHT_ULTRASONIC_PING_CHANNEL, RIGHT_ULTRASONIC_ECHO_CHANNEL);
+    DIO* leftDioUltrasonic;
+    DIO* rightDioUltrasonic;
+    frc::SerialPort* serialUltrasonic = new frc::SerialPort(9600);
+  */
+    frc::AnalogInput* analogUltrasonicR = new frc::AnalogInput(ULTRASONIC_R_ANALOG_IN);
+    frc::AnalogInput* analogUltrasonicL = new frc::AnalogInput(ULTRASONIC_L_ANALOG_IN);
   #endif
 
   struct distances {
@@ -178,16 +203,15 @@ class Robot : public frc::TimedRobot {
   // Talons
 
   #if COMP_ROBOT
-  WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
-  WPI_VictorSPX l2{LEFT_2_CAN_ADDRESS};
-  WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
-  WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS};
-
+    WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
+    WPI_VictorSPX l2{LEFT_2_CAN_ADDRESS};
+    WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
+    WPI_VictorSPX r2{RIGHT_2_CAN_ADDRESS};
   #else
-  frc::Spark Spark_l1{L1_SPARK_PWM};
-  frc::Spark Spark_l2{L2_SPARK_PWM};
-  frc::Spark Spark_r1{R1_SPARK_PWM};
-  frc::Spark Spark_r2{R2_SPARK_PWM};
+    frc::Spark Spark_l1{L1_SPARK_PWM};
+    frc::Spark Spark_l2{L2_SPARK_PWM};
+    frc::Spark Spark_r1{R1_SPARK_PWM};
+    frc::Spark Spark_r2{R2_SPARK_PWM};
   #endif
 
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM};
@@ -198,17 +222,31 @@ class Robot : public frc::TimedRobot {
   // OTHER
 
   AHRS* ahrs = new AHRS(I2C::Port::kMXP);
+  frc::Timer* timer = new frc::Timer();
 
-  frc::Compressor compressor{pcm0};
-  frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-  frc::DoubleSolenoid intakeArm{pcm0, pch2, pch3};
-  frc::DoubleSolenoid ballPusher{pcm0, pch4, pch5};
-  frc::DoubleSolenoid hatchPusher{pcm0, pch6, pch7};
-  frc::DoubleSolenoid jumper{1, 0, 1};
+  #if COMP_ROBOT
+    frc::Compressor compressor{pcm0};
+    frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
+    frc::DoubleSolenoid intakeArm{pcm0, pch6, pch7};
+    frc::DoubleSolenoid ballPusher{pcm0, pch2, pch3};
+    frc::DoubleSolenoid hatchPusher{pcm0, pch4, pch5};
+    frc::DoubleSolenoid jumper{1, 0, 1};
+  #else
+    frc::Compressor compressor{pcm0};
+    frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1}; // TODO
+    frc::DoubleSolenoid intakeArm{pcm0, pch6, pch7};
+    frc::DoubleSolenoid ballPusher{pcm0, pch2, pch3};
+    frc::DoubleSolenoid hatchPusher{pcm0, pch4, pch5};
+    frc::DoubleSolenoid jumper{1, 0, 1};
+  #endif
 
   // frc::PIDController straighten = frc::PIDController();
 
-  frc::Encoder leftEnc{dio3, dio2}, rightEnc{dio1, dio2}; // might need to switch
+  #if COMP_ROBOT
+    frc::Encoder leftEnc{2, 3}, rightEnc{0, 1}; // might need to switch. also, TODO - Talon encoders?
+  #else
+    frc::Encoder leftEnc{2, 3}, rightEnc{0, 1}; // also TODO
+  #endif
 
   void RobotInit() override;
   void RobotPeriodic() override;

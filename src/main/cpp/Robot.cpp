@@ -17,11 +17,6 @@ void Robot::RobotInit() {
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
-  // Spark_l1.SetInverted(true);
-  // Spark_l2.SetInverted(true);
-  // Spark_r1.SetInverted(false);
-  // Spark_r2.SetInverted(false);
-
   //-----------------------------------------------------------------------------------
 
 /* some deprecated sensor stuff
@@ -30,24 +25,26 @@ void Robot::RobotInit() {
   // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
   // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
   // LineSensorInit();
-  #if ULTRA_EXIST
+  // #if ULTRA_EXIST
   // serialUltrasonic->EnableTermination((char)31);
   // serialUltrasonic->Reset();
-  #endif
+  // #endif
 */
 
   frc::SmartDashboard::PutNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
   frc::SmartDashboard::PutNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
   frc::SmartDashboard::PutNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
 
-  elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
+  #if ELEVATOR_SENSOR_EXIST
+    elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
+  #endif
 
   #if ULTRA_EXIST
-  analogUltrasonicR->InitAccumulator();
-  analogUltrasonicR->ResetAccumulator();
-  analogUltrasonicL->InitAccumulator();
-  analogUltrasonicL->ResetAccumulator();
-  #endif 
+    analogUltrasonicR->InitAccumulator();
+    analogUltrasonicR->ResetAccumulator();
+    analogUltrasonicL->InitAccumulator();
+    analogUltrasonicL->ResetAccumulator();
+  #endif
 
   leftEnc.SetDistancePerPulse(PULSE_IN);
   rightEnc.SetDistancePerPulse(PULSE_IN);
@@ -57,9 +54,11 @@ void Robot::RobotInit() {
 
   compressor.SetClosedLoopControl(true);
   ShiftGears(Direction::down, driveGearboxes);
+  driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
   intakeArm.Set(frc::DoubleSolenoid::kReverse);
-  ballPusher.Set(frc::DoubleSolenoid::kReverse);    // IS THIS RIGHT? (TODO)
-  hatchPusher.Set(frc::DoubleSolenoid::kReverse);
+  ballPusher.Set(frc::DoubleSolenoid::kReverse);
+  hatchPusher.Set(frc::DoubleSolenoid::kForward);
+  jumper.Set(frc::DoubleSolenoid::kForward);
 
   TalonInit();
   intakeMotor.SetInverted(false);
@@ -77,7 +76,9 @@ void Robot::RobotPeriodic() { // runs after mode specific
   Testing();
   GetDistances();
 
-  elevatorAtZero = !elevatorZero->Get();
+  #if ELEVATOR_SENSOR_EXIST
+    elevatorAtZero = !elevatorZero->Get();
+  #endif
 
   // printf("\n");
 }
@@ -160,11 +161,12 @@ void Robot::DisabledPeriodic() {
 
 void Robot::TalonInit() {
   #if COMP_ROBOT
-  l1.ConfigFactoryDefault();
-  l2.ConfigFactoryDefault();
-  r1.ConfigFactoryDefault();
-  r2.ConfigFactoryDefault();
+    l1.ConfigFactoryDefault();
+    l2.ConfigFactoryDefault();
+    r1.ConfigFactoryDefault();
+    r2.ConfigFactoryDefault();
   #endif
+
   elevator.ConfigFactoryDefault();
 
   elevator.ConfigOpenloopRamp(0.05);
@@ -176,32 +178,51 @@ void Robot::TalonInit() {
 
 
   #if COMP_ROBOT
-  l1.SetInverted(false);
-  l2.SetInverted(false);
-  r1.SetInverted(true); 
-  r2.SetInverted(true);
+    l1.ConfigContinuousCurrentLimit(39, 10);
+    // l2.ConfigContinuousCurrentLimit(39, 10);
+    r1.ConfigContinuousCurrentLimit(39, 10);
+    // r2.ConfigContinuousCurrentLimit(39, 10); 
 
-  l2.Follow(l1);
-  r2.Follow(r1);
+    l1.ConfigPeakCurrentLimit(0, 10);
+    // l2.ConfigPeakCurrentLimit(0, 10);
+    r1.ConfigPeakCurrentLimit(0, 10);
+    // r2.ConfigPeakCurrentLimit(0, 10);    
 
-  l1.SetNeutralMode(NeutralMode::Brake);
-  r1.SetNeutralMode(NeutralMode::Brake);
-  l2.SetNeutralMode(NeutralMode::Brake);
-  r2.SetNeutralMode(NeutralMode::Brake);
+    l1.SetInverted(false);
+    l2.SetInverted(false);
+    r1.SetInverted(true); 
+    r2.SetInverted(true);
 
-  l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
-  r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+    l2.Follow(l1);
+    r2.Follow(r1);
 
-  // r1.SetSafety
+    l1.SetNeutralMode(NeutralMode::Brake);
+    r1.SetNeutralMode(NeutralMode::Brake);
+    l2.SetNeutralMode(NeutralMode::Brake);
+    r2.SetNeutralMode(NeutralMode::Brake);
+
+    l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+    r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+
+    // r1.SetSafety
+  #else
+    Spark_l1.SetInverted(false);
+    Spark_l2.SetInverted(false);
+    Spark_r1.SetInverted(true);
+    Spark_r2.SetInverted(true); 
   #endif
+
+  elevator.ConfigContinuousCurrentLimit(39, 10);
+  elevator.ConfigPeakCurrentLimit(0, 10);    
 
   elevator.SetNeutralMode(NeutralMode::Brake);
   #if COMP_ROBOT
-    elevator.SetInverted(true);
+    elevator.SetInverted(false);
+    elevator.SetSensorPhase(false); 
   #else
     elevator.SetInverted(true); // TODO
+    elevator.SetSensorPhase(false); //TODO
   #endif
-  elevator.SetSensorPhase(true); 
 
   elevator.ConfigPeakOutputReverse(-1.0);
   elevator.ConfigPeakOutputForward(1.0);
@@ -345,6 +366,7 @@ void Robot::HandleJoysticks() {
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
   ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
+  ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
 
   if (rightJoystick.GetRawButtonPressed(1)) {
     ahrs->Reset();
@@ -379,35 +401,44 @@ void Robot::RunElevator() {
   frc::SmartDashboard::PutNumber("absPos2", absPos2);
   
   if (elevatorState == CALIBRATING) {
-    elevatorCalibratingLoopCount += 1;
-    printf("in elevator calibrating\n");
-    if (elevatorCalibratingLoopCount < 325) {
-      if (!elevatorAtZero) {
-        printf("in cali - not at zero\n");
-        // elevator.Set(ControlMode::Velocity, -0.0001);
-        elevator.Set(ControlMode::PercentOutput, -0.6);
+    #if ELEVATOR_SENSOR_EXIST
+      elevatorCalibratingLoopCount += 1;
+      printf("in elevator calibrating\n");
+      if (elevatorCalibratingLoopCount < 325) {
+        if (!elevatorAtZero) {
+          printf("in cali - not at zero\n");
+          // elevator.Set(ControlMode::Velocity, -0.0001);
+          elevator.Set(ControlMode::PercentOutput, -0.4);
+        } else {
+          printf("in cali - at zero\n");
+          elevator.Set(ControlMode::PercentOutput, 0.0);
+          // elevator.SetSelectedSensorPosition(0, 0, 10);
+          elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
+          elevator.SetSelectedSensorPosition(0, 0, 10);
+          elevatorState = NORMAL;
+        }
       } else {
-        printf("in cali - else (at zero)\n");
+        printf("in cali too long\n");
         elevator.Set(ControlMode::PercentOutput, 0.0);
-        // elevator.SetSelectedSensorPosition(0, 0, 10);
-        elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
-        elevator.SetSelectedSensorPosition(0, 0, 10);
-        elevatorState = NORMAL;
       }
-    } else {
-      printf("in cali too long\n");
+    #else
+      printf("warning - assuming elevator at zero\n");
       elevator.Set(ControlMode::PercentOutput, 0.0);
-    }
+      // elevator.SetSelectedSensorPosition(0, 0, 10);
+      elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
+      elevator.SetSelectedSensorPosition(0, 0, 10);
+      elevatorState = NORMAL;
+    #endif
   } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
     int _pos;
     printf("in elevator normal\n");
     switch (elevatorDestination) {
       case HOLD:
-        elevator.Set(ControlMode::PercentOutput, 0.2);
+        elevator.Set(ControlMode::PercentOutput, ELEVATOR_FEEDFORWARD);
         break;
       case MANUAL:
         printf("setting to gamerjoystick\n");
-        elevator.Set(ControlMode::PercentOutput, (-gamerJoystick.GetRawAxis(5) /*+ 0.2*/) );
+        elevator.Set(ControlMode::PercentOutput, (-gamerJoystick.GetRawAxis(5) /*+ ELEVATOR_FEEDFORWARD*/) );
         break;
       case MECHANICAL_LOW:
         break;
@@ -418,17 +449,17 @@ void Robot::RunElevator() {
         break;
       case HATCH_LOW:
       case HATCH_MID:
-        // _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
-        // elevator.Set(ControlMode::Position, _pos);
-        // break;
+        _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
+        elevator.Set(ControlMode::Position, _pos);
+        break;
       case HATCH_HIGH:
-        // _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
-        // elevator.Set(ControlMode::Position, _pos);
-        // break;
+        _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
+        elevator.Set(ControlMode::Position, _pos);
+        break;
       case BALL_LOW:
-        // _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
-        // elevator.Set(ControlMode::Position, _pos);
-        // break;
+        _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
+        elevator.Set(ControlMode::Position, _pos);
+        break;
       case BALL_MID:
       case BALL_HIGH:
         printf("setting to a preset\n");
@@ -447,13 +478,22 @@ void Robot::RunElevator() {
         elevator.Set(ControlMode::PercentOutput, 0.0);
         break;
     }
-    if (elevatorAtZero) {
-      elevator.ConfigPeakOutputReverse(0.0);
-    } else {
-      elevator.ConfigPeakOutputReverse(-1.0);
-    }
+
+    #if ELEVATOR_SENSOR_EXIST
+      if (elevatorAtZero) {
+        elevator.ConfigPeakOutputReverse(0.0);
+      } else {
+        elevator.ConfigPeakOutputReverse(-1.0);
+      }
     // auto x = new int[2]{0, -1};
     // elevator.ConfigPeakOutputReverse(new int[2]{0, -1}[!elevatorAtZero])
+    #endif
+
+    double percentOutput = elevator.GetMotorOutputPercent();
+    double voltageOutput = elevator.GetMotorOutputVoltage();
+    if (percentOutput > 2 || voltageOutput != 0.0) {
+      printf("elevator output: %f percent, %f volts", percentOutput, voltageOutput);
+    }
   } 
 }
 
@@ -462,6 +502,10 @@ void Robot::RunElevator2() {
 }
 
 void Robot::ChooseElevatorMode() {
+  ElevatorDestination prevDest = elevatorDestination;
+
+
+
   if (buttonJoystick.GetRawButtonPressed(7)) {
     elevatorDestination = HATCH_HIGH;  
   } else if (buttonJoystick.GetRawButtonPressed(8)) {
@@ -471,12 +515,23 @@ void Robot::ChooseElevatorMode() {
   } else if (buttonJoystick.GetRawButtonPressed(10)) {
     elevatorDestination = BALL_MID;
   } else if (buttonJoystick.GetRawButtonPressed(11)) {
-    elevatorDestination = HATCH_LOW;
+    elevatorState = CALIBRATING;
+    elevatorDestination = MANUAL; // HATCH_LOW;
   } else if (buttonJoystick.GetRawButtonPressed(12)) {
     elevatorDestination = BALL_LOW;
   } else if (gamerJoystick.GetRawButtonPressed(6)) {
     elevatorDestination = MANUAL;
   }
+
+  // if (prevDest == MANUAL || prevDest == HOLD) {
+  //   elevator.SelectProfileSlot(1, 0); // less power - fill vals
+  // } else {
+  //   if (elevatorDestination > prevDest) {
+  //     elevator.SelectProfileSlot(0, 0);
+  //   } else {
+  //     elevator.SelectProfileSlot(1, 0);
+  //   } 
+  // }
 }
 
 void Robot::ChooseAlignMode() {
@@ -628,6 +683,10 @@ void Robot::GetLimelight() {
   float tx = limelight->GetNumber("tx", 0.0);
   float ty = limelight->GetNumber("ty", 0.0);
 
+  ty -= 2.5; // TODO: stronger?
+
+  // P_align = 0.350 works well
+
   double P_align = 0.35 * toleranceScalar;
   left_command  = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
   right_command = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
@@ -770,13 +829,11 @@ void Robot::Align(Robot::DistanceType type) {
   frc::SmartDashboard::PutNumber("dis| dif", dif);
 
   if ((type == LIDAR && LIDAR_EXIST) || (type == ULTRASONIC && ULTRA_EXIST)) {
-    #if LIDAR_EXIST || ULTRA_EXIST
     printf("actual align\n");
     if (fabs(dif) > tolerance) {
       DriveLeft (-go);
       DriveRight( go);
     }
-    #endif
   }
 
 }
@@ -816,10 +873,10 @@ void Robot::Testing() {
   // frc::SmartDashboard::PutNumber("Left Encoder", leftEnc.GetDistance());
 	// frc::SmartDashboard::PutNumber("Right Encoder", rightEnc.GetDistance());
 
-  frc::SmartDashboard::PutBoolean("dio elevator", elevatorZero->Get());
-  frc::SmartDashboard::PutBoolean("elevatorAtZero", elevatorAtZero);
-
-
+  #if ELEVATOR_SENSOR_EXIST
+    frc::SmartDashboard::PutBoolean("dio elevator", elevatorZero->Get());
+    frc::SmartDashboard::PutBoolean("elevatorAtZero", elevatorAtZero);
+  #endif
 
   // frc::SmartDashboard::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
   // frc::SmartDashboard::PutNumber("lineSensorMid", lineSensorMid->GetValue());
@@ -828,19 +885,19 @@ void Robot::Testing() {
   // frc::SmartDashboard::PutNumber("lineSensornavx4", lineSensornavx4->GetAverageValue());
 
   #if ULTRA_EXIST
-  frc::SmartDashboard::PutNumber("dist.ultraR", ultraDist.left);
-  frc::SmartDashboard::PutNumber("dist.ultraL", ultraDist.right);
+    frc::SmartDashboard::PutNumber("dist.ultraR", ultraDist.left);
+    frc::SmartDashboard::PutNumber("dist.ultraL", ultraDist.right);
   #endif
 
   #if LIDAR_EXIST
-  frc::SmartDashboard::PutNumber("dist.lidarR", lidarDist.left);
-  frc::SmartDashboard::PutNumber("dist.lidarL", lidarDist.right);
+    frc::SmartDashboard::PutNumber("dist.lidarR", lidarDist.left);
+    frc::SmartDashboard::PutNumber("dist.lidarL", lidarDist.right);
   #endif
 
-  // frc::SmartDashboard::PutString("elevatorState", elevatorState == CALIBRATING ? "cali" : (elevatorState == NORMAL ? "norm" : "other"));
-  // frc::SmartDashboard::PutString("elevatorDestination", elevatorDestination == MANUAL ? "manual" : (elevatorDestination == HOLD ? "hold" : (elevatorDestination == HATCH_MID ? "hatch_mid" : "other")));
+  frc::SmartDashboard::PutString("elevatorState", elevatorState == CALIBRATING ? "cali" : (elevatorState == NORMAL ? "norm" : "other"));
+  frc::SmartDashboard::PutString("elevatorDestination", elevatorDestination == MANUAL ? "manual" : (elevatorDestination == HOLD ? "hold" : (elevatorDestination == HATCH_MID ? "hatch_mid" : "other")));
 
-  // frc::SmartDashboard::PutNumber("gamer-5", gamerJoystick.GetRawAxis(5));
+  frc::SmartDashboard::PutNumber("gamer-5", gamerJoystick.GetRawAxis(5));
   
   // frc::SmartDashboard::PutNumber( "ahrs->GetPitch()                ", ahrs->GetPitch()                );
   // frc::SmartDashboard::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );
@@ -857,11 +914,7 @@ void Robot::Testing() {
   frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
   frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
   frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
-  
-  
 }
-
-
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
