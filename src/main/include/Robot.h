@@ -83,8 +83,8 @@ class Robot : public frc::TimedRobot {
       {BALL_CARGO,      1 /* placeholder!!!! TODO */ },
       {HATCH_CARGO,     1 /* placeholder!!!! TODO */ },
       {HATCH_LOW,  -1000},
-      {HATCH_MID,   12000},
-      {HATCH_HIGH,  24200},
+      {HATCH_MID,   12000}, //9761
+      {HATCH_HIGH,  24200}, //20000
       {BALL_LOW,    4100 },
       {BALL_MID,    16800},
       {BALL_HIGH,   28550},
