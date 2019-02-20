@@ -186,7 +186,10 @@ void Robot::TalonInit() {
     l1.ConfigPeakCurrentLimit(0, 10);
     // l2.ConfigPeakCurrentLimit(0, 10);
     r1.ConfigPeakCurrentLimit(0, 10);
-    // r2.ConfigPeakCurrentLimit(0, 10);    
+    // r2.ConfigPeakCurrentLimit(0, 10);  
+
+    r1.EnableCurrentLimit(true);
+    r1.EnableCurrentLimit(true);  
 
     l1.SetInverted(false);
     l2.SetInverted(false);
