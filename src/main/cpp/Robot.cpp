@@ -35,41 +35,13 @@ void Robot::RobotInit() {
   frc::SmartDashboard::PutNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
   frc::SmartDashboard::PutNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
 
-  #if ELEVATOR_SENSOR_EXIST
-    elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
-  #endif
-
-  #if ULTRA_EXIST
-    analogUltrasonicR->InitAccumulator();
-    analogUltrasonicR->ResetAccumulator();
-    analogUltrasonicL->InitAccumulator();
-    analogUltrasonicL->ResetAccumulator();
-  #endif
-
-  leftEnc.SetDistancePerPulse(PULSE_IN);
-  rightEnc.SetDistancePerPulse(PULSE_IN);
-
-  leftEnc.Reset();
-  rightEnc.Reset();
+  SensorInit();
 
   compressor.SetClosedLoopControl(true);
 
-  #if COMP_ROBOT
-    ShiftGears(Direction::down, driveGearboxes);
-    driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
-    intakeArm.Set(frc::DoubleSolenoid::kReverse);
-    ballPusher.Set(frc::DoubleSolenoid::kReverse);
-    hatchPusher.Set(frc::DoubleSolenoid::kForward);
-    jumper.Set(frc::DoubleSolenoid::kForward);
-  #else // TODO
-    ShiftGears(Direction::down, driveGearboxes);
-    driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
-    intakeArm.Set(frc::DoubleSolenoid::kReverse);
-    ballPusher.Set(frc::DoubleSolenoid::kReverse);
-    hatchPusher.Set(frc::DoubleSolenoid::kForward);
-    jumper.Set(frc::DoubleSolenoid::kForward);
+  #if (!PNEUMATIC_OBJECT)
+    SetPneumaticDefaultDirections();
   #endif
-
 
   TalonInit();
   intakeMotor.SetInverted(false);
@@ -138,7 +110,7 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {}
-
+ 
 void Robot::TeleopPeriodic() {
   HandleJoysticks();
   RunElevator(); 
@@ -156,7 +128,15 @@ void Robot::DisabledPeriodic() {
   rightJoystick.GetRawButtonPressed(3);
   rightJoystick.GetRawButtonPressed(5);
   rightJoystick.GetRawButtonPressed(4);
+  rightJoystick.GetRawButtonPressed(6);
 
+  buttonJoystick.GetRawButtonPressed(1);
+  buttonJoystick.GetRawButtonPressed(2);
+  buttonJoystick.GetRawButtonPressed(3);
+  buttonJoystick.GetRawButtonPressed(4);
+  buttonJoystick.GetRawButtonPressed(5);
+  buttonJoystick.GetRawButtonPressed(6);
+  buttonJoystick.GetRawButtonPressed(7);
   buttonJoystick.GetRawButtonPressed(8);
   buttonJoystick.GetRawButtonPressed(8);
   buttonJoystick.GetRawButtonPressed(9);
@@ -171,7 +151,7 @@ void Robot::DisabledPeriodic() {
 //--------------------------
 
 void Robot::TalonInit() {
-  #if COMP_ROBOT
+  #if (COMP_ROBOT || PRACTICE_TALON)
     l1.ConfigFactoryDefault();
     l2.ConfigFactoryDefault();
     r1.ConfigFactoryDefault();
@@ -188,7 +168,7 @@ void Robot::TalonInit() {
   elevator.Config_kD(0, 80, 10);
 
 
-  #if COMP_ROBOT
+  #if (COMP_ROBOT || PRACTICE_TALON)
     l1.ConfigContinuousCurrentLimit(39, 10);
     // l2.ConfigContinuousCurrentLimit(39, 10);
     r1.ConfigContinuousCurrentLimit(39, 10);
@@ -263,42 +243,42 @@ void Robot::LineSensorInit() /* all commented out - deprecated */ {
 }
 
 void Robot::DriveLeft(double amount) {
-  #if COMP_ROBOT
-  l1.Set(ControlMode::PercentOutput, amount);
+  #if (COMP_ROBOT || PRACTICE_TALON)
+    l1.Set(ControlMode::PercentOutput, amount);
   #else
-  Spark_l1.Set(amount);
-  Spark_l2.Set(amount);
+    Spark_l1.Set(amount);
+    Spark_l2.Set(amount);
   #endif
 }
 void Robot::DriveRight(double amount) {
-  #if COMP_ROBOT
-  r1.Set(ControlMode::PercentOutput, amount);
+  #if (COMP_ROBOT || PRACTICE_TALON)
+    r1.Set(ControlMode::PercentOutput, amount);
   #else
-  Spark_r1.Set(amount);
-  Spark_r2.Set(amount);
+    Spark_r1.Set(amount);
+    Spark_r2.Set(amount);
   #endif
 }
 void Robot::TurnLeft(double amount) {
-  #if COMP_ROBOT
-  l1.Set(ControlMode::PercentOutput, -amount);
-  r1.Set(ControlMode::PercentOutput,  amount);
+  #if (COMP_ROBOT || PRACTICE_TALON)
+    l1.Set(ControlMode::PercentOutput, -amount);
+    r1.Set(ControlMode::PercentOutput,  amount);
   #else
-  Spark_l1.Set(-amount);
-  Spark_l2.Set(-amount);
-  Spark_r1.Set( amount);
-  Spark_r2.Set( amount);
+    Spark_l1.Set(-amount);
+    Spark_l2.Set(-amount);
+    Spark_r1.Set( amount);
+    Spark_r2.Set( amount);
   #endif
 
 }
 void Robot::TurnRight(double amount) {
-  #if COMP_ROBOT
-  l1.Set(ControlMode::PercentOutput,  amount);
-  r1.Set(ControlMode::PercentOutput, -amount);
+  #if (COMP_ROBOT || PRACTICE_TALON)
+    l1.Set(ControlMode::PercentOutput,  amount);
+    r1.Set(ControlMode::PercentOutput, -amount);
   #else
-  Spark_l1.Set( amount);
-  Spark_l2.Set( amount);
-  Spark_r1.Set(-amount);
-  Spark_r2.Set(-amount);
+    Spark_l1.Set( amount);
+    Spark_l2.Set( amount);
+    Spark_r1.Set(-amount);
+    Spark_r2.Set(-amount);
   #endif
 }
 void Robot::DriveBoth(double amount) {
@@ -328,7 +308,7 @@ void Robot::HandleJoysticks() {
     GetLimelight();
   #endif
 
-  #if COMP_ROBOT
+  #if (COMP_ROBOT || PRACTICE_TALON)
     l1.ConfigOpenloopRamp(0.0);
     r1.ConfigOpenloopRamp(0.0);
   #endif
@@ -358,7 +338,7 @@ void Robot::HandleJoysticks() {
     printf("calling align(navx)\n");
     Align(DistanceType::NAVX);
   } else { // manual driving
-    #if COMP_ROBOT
+    #if (COMP_ROBOT || PRACTICE_TALON)
     // l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     // r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     #endif
@@ -376,11 +356,19 @@ void Robot::HandleJoysticks() {
     }
   }
 
-  ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-  ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
-  ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
-  ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
-  ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
+  #if PNEUMATIC_OBJECT 
+    driveGearboxes.Toggle(rightJoystick.GetRawButtonPressed(2));;
+    ballPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(3));
+    intakeArm.Toggle(rightJoystick.GetRawButtonPressed(5));
+    hatchPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(4));
+    jumper.Toggle(rightJoystick.GetRawButtonPressed(6));
+  #else
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
+  #endif
 
   if (rightJoystick.GetRawButtonPressed(1)) {
     ahrs->Reset();
@@ -390,7 +378,7 @@ void Robot::HandleJoysticks() {
   ChooseAlignMode();
 
   if (leftJoystick.GetRawButtonPressed(2)) {
-    #if COMP_ROBOT
+    #if (COMP_ROBOT || PRACTICE_TALON)
       l1.SetInverted(!l1.GetInverted());
       l2.SetInverted(!l2.GetInverted());
       r1.SetInverted(!r1.GetInverted());
@@ -928,6 +916,45 @@ void Robot::Testing() {
   frc::SmartDashboard::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
   frc::SmartDashboard::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
   frc::SmartDashboard::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
+}
+
+void Robot::SetPneumaticDefaultDirections() {
+  #if (!PNEUMATIC_OBJECT)
+    #if COMP_ROBOT
+      ShiftGears(Direction::down, driveGearboxes);
+      driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
+      intakeArm.Set(frc::DoubleSolenoid::kReverse);
+      ballPusher.Set(frc::DoubleSolenoid::kReverse);
+      hatchPusher.Set(frc::DoubleSolenoid::kForward);
+      jumper.Set(frc::DoubleSolenoid::kForward);
+    #else // TODO
+      ShiftGears(Direction::down, driveGearboxes);
+      driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
+      intakeArm.Set(frc::DoubleSolenoid::kReverse);
+      ballPusher.Set(frc::DoubleSolenoid::kReverse);
+      hatchPusher.Set(frc::DoubleSolenoid::kForward);
+      jumper.Set(frc::DoubleSolenoid::kForward);
+    #endif
+  #endif
+}
+
+void Robot::SensorInit() {
+  #if ELEVATOR_SENSOR_EXIST
+    elevatorZero = new frc::DigitalInput(ELEVATOR_ZERO_HALL_DIO);
+  #endif
+
+  #if ULTRA_EXIST
+    analogUltrasonicR->InitAccumulator();
+    analogUltrasonicR->ResetAccumulator();
+    analogUltrasonicL->InitAccumulator();
+    analogUltrasonicL->ResetAccumulator();
+  #endif
+
+  leftEnc.SetDistancePerPulse(PULSE_IN);
+  rightEnc.SetDistancePerPulse(PULSE_IN);
+
+  leftEnc.Reset();
+  rightEnc.Reset();
 }
 
 #ifndef RUNNING_FRC_TESTS

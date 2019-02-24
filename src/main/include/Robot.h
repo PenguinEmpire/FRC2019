@@ -39,10 +39,12 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   } currentGear = down;
 
+  #if !PNEUMATIC_OBJECT
   /*const static*/ unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = {
     {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, 
     {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, 
   };
+  #endif
 
   enum State {
     UNINITIALIZED,
@@ -108,25 +110,6 @@ class Robot : public frc::TimedRobot {
     LIDAR, ULTRASONIC, ENCODER, NAVX
   };
 
-/*
-  struct Pneumatic {
-    frc::DoubleSolenoid solenoid;
-    Robot::Direction currentDir;
-    
-    Pneumatic(int pcm, int pch_1, int pch_2, Direction startDir) {
-      solenoid = frc::DoubleSolenoid{pcm, pch_1, pch_2};
-      currentDir = startDir;
-    }
-
-    void Toggle() {
-      frc::DoubleSolenoid::Value state = solenoid.Get();
-      auto map = Robot::reverseStates;
-      state = map[state];
-      solenoid.Set(state);
-    }    
-  };
-*/
-
   bool driveInverted = false;
 
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
@@ -190,10 +173,6 @@ class Robot : public frc::TimedRobot {
   #endif
 
   struct distances {
-    // int lidarL;
-    // int lidarR;
-    // int ultrasonicL;
-    // int ultrasonicR;
     double left;
     double right;
     double total;
@@ -206,7 +185,7 @@ class Robot : public frc::TimedRobot {
   // MOTOR CONTROLLERS
   // Talons
 
-  #if COMP_ROBOT
+  #if (COMP_ROBOT || PRACTICE_TALON)
     WPI_TalonSRX l1{LEFT_1_CAN_ADDRESS};
     WPI_VictorSPX l2{LEFT_2_CAN_ADDRESS};
     WPI_TalonSRX r1{RIGHT_1_CAN_ADDRESS};
@@ -232,21 +211,35 @@ class Robot : public frc::TimedRobot {
     Pneumatic test{0, 0, 1, frc::DoubleSolenoid::kReverse};
   #endif
 
-
+  frc::Compressor compressor{pcm0};
   #if COMP_ROBOT
-    frc::Compressor compressor{pcm0};
-    frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-    frc::DoubleSolenoid intakeArm{pcm0, pch6, pch7};
-    frc::DoubleSolenoid ballPusher{pcm0, pch2, pch3};
-    frc::DoubleSolenoid hatchPusher{pcm0, pch4, pch5};
-    frc::DoubleSolenoid jumper{1, 0, 1};
+    #if PNEUMATIC_OBJECT
+      Pneumatic driveGearboxes{pcm0, pch0, pch1, frc::DoubleSolenoid::kReverse};
+      Pneumatic intakeArm{     pcm0, pch6, pch7, frc::DoubleSolenoid::kReverse};
+      Pneumatic ballPusher{    pcm0, pch2, pch3, frc::DoubleSolenoid::kReverse};
+      Pneumatic hatchPusher{   pcm0, pch4, pch5, frc::DoubleSolenoid::kForward};
+      Pneumatic jumper{           1,    0,    1, frc::DoubleSolenoid::kForward};
+    #else
+      frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
+      frc::DoubleSolenoid intakeArm{     pcm0, pch6, pch7};
+      frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
+      frc::DoubleSolenoid hatchPusher{   pcm0, pch4, pch5};
+      frc::DoubleSolenoid jumper{           1,    0,    1};
+    #endif
   #else //TODOOO
-    frc::Compressor compressor{pcm0};
-    frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1}; // TODO
-    frc::DoubleSolenoid intakeArm{pcm0, pch6, pch7};
-    frc::DoubleSolenoid ballPusher{pcm0, pch2, pch3};
-    frc::DoubleSolenoid hatchPusher{pcm0, pch4, pch5};
-    frc::DoubleSolenoid jumper{1, 0, 1};
+    #if PNEUMATIC_OBJECT
+      Pneumatic driveGearboxes{pcm0, pch0, pch1, frc::DoubleSolenoid::kReverse};
+      Pneumatic intakeArm{     pcm0, pch6, pch7, frc::DoubleSolenoid::kReverse};
+      Pneumatic ballPusher{    pcm0, pch2, pch3, frc::DoubleSolenoid::kReverse};
+      Pneumatic hatchPusher{   pcm0, pch4, pch5, frc::DoubleSolenoid::kForward};
+      Pneumatic jumper{           1,    0,    1, frc::DoubleSolenoid::kForward};
+    #else
+      frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
+      frc::DoubleSolenoid intakeArm{     pcm0, pch6, pch7};
+      frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
+      frc::DoubleSolenoid hatchPusher{   pcm0, pch4, pch5};
+      frc::DoubleSolenoid jumper{           1,    0,    1};
+    #endif
   #endif
 
   // frc::PIDController straighten = frc::PIDController();
@@ -293,6 +286,9 @@ class Robot : public frc::TimedRobot {
   void ChooseAlignMode();
 
   void StopForwardMovement();
+
+  void SetPneumaticDefaultDirections();
+  void SensorInit();
 
 
   // Utils:

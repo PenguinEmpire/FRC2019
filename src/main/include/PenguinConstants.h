@@ -46,12 +46,13 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
 
-#define COMP_ROBOT            true
+#define COMP_ROBOT            false
+#define PRACTICE_TALON        true
 #define LIDAR_EXIST           true 
-#define ULTRA_EXIST           false
+#define ULTRA_EXIST           true
 #define LIMELIGHT_EXIST       true
 #define ELEVATOR_SENSOR_EXIST true
-#define PNEUMATIC_OBJECT      true
+#define PNEUMATIC_OBJECT      true   
 
 // COMP ROBOT VALUES
 
@@ -60,6 +61,11 @@ constexpr float PULSE_IN = 0.16;
     constexpr int LEFT_2_CAN_ADDRESS  = 10;
     constexpr int RIGHT_1_CAN_ADDRESS =  2;
     constexpr int RIGHT_2_CAN_ADDRESS = 11;
+#elif PRACTICE_TALON
+    constexpr int LEFT_1_CAN_ADDRESS  =  3;
+    constexpr int LEFT_2_CAN_ADDRESS  = 11;
+    constexpr int RIGHT_1_CAN_ADDRESS =  6;
+    constexpr int RIGHT_2_CAN_ADDRESS = 10;
 #else
     constexpr int L1_SPARK_PWM = 3;
     constexpr int L2_SPARK_PWM = 4;
