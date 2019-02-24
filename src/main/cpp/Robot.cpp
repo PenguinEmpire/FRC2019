@@ -53,12 +53,23 @@ void Robot::RobotInit() {
   rightEnc.Reset();
 
   compressor.SetClosedLoopControl(true);
-  ShiftGears(Direction::down, driveGearboxes);
-  driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
-  intakeArm.Set(frc::DoubleSolenoid::kReverse);
-  ballPusher.Set(frc::DoubleSolenoid::kReverse);
-  hatchPusher.Set(frc::DoubleSolenoid::kForward);
-  jumper.Set(frc::DoubleSolenoid::kForward);
+
+  #if COMP_ROBOT
+    ShiftGears(Direction::down, driveGearboxes);
+    driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
+    intakeArm.Set(frc::DoubleSolenoid::kReverse);
+    ballPusher.Set(frc::DoubleSolenoid::kReverse);
+    hatchPusher.Set(frc::DoubleSolenoid::kForward);
+    jumper.Set(frc::DoubleSolenoid::kForward);
+  #else // TODO
+    ShiftGears(Direction::down, driveGearboxes);
+    driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
+    intakeArm.Set(frc::DoubleSolenoid::kReverse);
+    ballPusher.Set(frc::DoubleSolenoid::kReverse);
+    hatchPusher.Set(frc::DoubleSolenoid::kForward);
+    jumper.Set(frc::DoubleSolenoid::kForward);
+  #endif
+
 
   TalonInit();
   intakeMotor.SetInverted(false);

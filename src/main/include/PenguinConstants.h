@@ -1,3 +1,5 @@
+#pragma once
+
 constexpr int dio0 = 0;
 constexpr int dio1 = 1;
 constexpr int dio2 = 2;
@@ -45,10 +47,11 @@ constexpr int can7 = 7;
 constexpr float PULSE_IN = 0.16;
 
 #define COMP_ROBOT            true
-#define LIDAR_EXIST           false 
+#define LIDAR_EXIST           true 
 #define ULTRA_EXIST           false
-#define LIMELIGHT_EXIST       false
+#define LIMELIGHT_EXIST       true
 #define ELEVATOR_SENSOR_EXIST true
+#define PNEUMATIC_OBJECT      true
 
 // COMP ROBOT VALUES
 
@@ -71,11 +74,15 @@ constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 5;
     constexpr int ELEVATOR_ZERO_HALL_DIO = 4;
 #endif
 
-constexpr int ULTRASONIC_R_ANALOG_IN = 1;
-constexpr int ULTRASONIC_L_ANALOG_IN = 0;
+#if ULTRA_EXIST
+    constexpr int ULTRASONIC_R_ANALOG_IN = 1;
+    constexpr int ULTRASONIC_L_ANALOG_IN = 0;
+#endif
 
-constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kOnboard;
-constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kMXP;
+#if LIDAR_EXIST
+    constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kOnboard;
+    constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kMXP;
+#endif
 
 //--
 

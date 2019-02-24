@@ -21,9 +21,13 @@
 #include "PenguinJoystick.h"
 #include "Lidar.h"
 
+#if PNEUMATIC_OBJECT
+  #include "Pneumatic.h"
+#endif
+
 #include "ctre/Phoenix.h"
 #include "AHRS.h"
-#include "pathfinder.h"
+// #include "pathfinder.h"
 
 using std::unordered_map;
 typedef frc::DigitalInput DIO;
@@ -35,7 +39,7 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   } currentGear = down;
 
-  unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = {
+  /*const static*/ unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = {
     {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, 
     {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, 
   };
@@ -224,6 +228,11 @@ class Robot : public frc::TimedRobot {
   AHRS* ahrs = new AHRS(I2C::Port::kMXP);
   frc::Timer* timer = new frc::Timer();
 
+  #if PNEUMATIC_OBJECT
+    Pneumatic test{0, 0, 1, frc::DoubleSolenoid::kReverse};
+  #endif
+
+
   #if COMP_ROBOT
     frc::Compressor compressor{pcm0};
     frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
@@ -231,7 +240,7 @@ class Robot : public frc::TimedRobot {
     frc::DoubleSolenoid ballPusher{pcm0, pch2, pch3};
     frc::DoubleSolenoid hatchPusher{pcm0, pch4, pch5};
     frc::DoubleSolenoid jumper{1, 0, 1};
-  #else
+  #else //TODOOO
     frc::Compressor compressor{pcm0};
     frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1}; // TODO
     frc::DoubleSolenoid intakeArm{pcm0, pch6, pch7};
