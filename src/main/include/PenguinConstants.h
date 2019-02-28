@@ -49,10 +49,10 @@ constexpr float PULSE_IN = 0.16;
 #define COMP_ROBOT            false
 #define PRACTICE_TALON        true
 #define LIDAR_EXIST           true 
-#define ULTRA_EXIST           true
+#define ULTRA_EXIST           false
 #define LIMELIGHT_EXIST       true
-#define ELEVATOR_SENSOR_EXIST true
-#define PNEUMATIC_OBJECT      true   
+#define ELEVATOR_SENSOR_EXIST false
+#define PNEUMATIC_OBJECT      false   
 
 // COMP ROBOT VALUES
 

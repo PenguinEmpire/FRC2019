@@ -59,7 +59,7 @@ class Pneumatic : public frc::DoubleSolenoid {
       }
     }
 
-    void Update() {
+    void PenguinUpdate() {
       if (busy) {
         if (timer->Get() >= goalTime) {
           Toggle();
