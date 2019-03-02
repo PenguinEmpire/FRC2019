@@ -1,7 +1,7 @@
 #pragma once
 
 // #include "Robot.h"
-// #include <unorderedmap>
+#include <unorderedmap>
 #include "frc/Timer.h"
 #include "frc/DoubleSolenoid.h"
 
@@ -23,13 +23,15 @@ class Pneumatic : public frc::DoubleSolenoid {
     double goalTime;
 
     Pneumatic(int pcm, int pch_1, int pch_2, frc::DoubleSolenoid::Value state) 
-      : frc::DoubleSolenoid(pcm, pch_1, pch_2)
+      : frc::DoubleSolenoid(pcm, pch_1, pch_2), in(state)
     {
       Set(state);
-      in = state;
-      timer->Reset();
 
+      timer->Reset();
+      timer->Start();
       // Toggle(); // testing
+
+      busy = false;
     }
 
     void Toggle() {
@@ -39,16 +41,28 @@ class Pneumatic : public frc::DoubleSolenoid {
     }
 
     void Toggle(bool btn) {
-      if (!busy && btn) {
+      if (btn) {
         Toggle();
       }
     }
 
+    void ToggleOverride() {
+      Set(reverseStates[Get()]);
+    }
+
+    void ToggleOverride(bool btn) {
+      if (btn) {
+        ToggleOverride();
+      }
+    }
+
     void ToggleTimed(double seconds) {
-      curTime = timer->Get();
-      goalTime = curTime + seconds;
-      printf("curTime: %f", curTime);
-      Toggle();
+      printf("called ToggleTimed\n");
+      goalTime = timer->Get() + seconds;
+      printf("curTime: %f\n", curTime);
+      printf("goalTime: %f\n", goalTime);
+      printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+      ToggleOverride();
       busy = true;
       // timer->Start();
     }
@@ -60,13 +74,18 @@ class Pneumatic : public frc::DoubleSolenoid {
     }
 
     void PenguinUpdate() {
+      curTime = timer->Get();
+      
+      printf("calling penguin update; curTime : %f, goalTime : %f, busy : %i \n", curTime, goalTime, busy);
+
       if (busy) {
         if (timer->Get() >= goalTime) {
-          Toggle();
+          ToggleOverride();
           busy = false;
           // timer->Stop();
         }
       }
+
     }
   
   private:

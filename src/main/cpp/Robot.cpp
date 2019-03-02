@@ -40,7 +40,7 @@ void Robot::RobotInit() {
   compressor.SetClosedLoopControl(true);
 
   #if (!PNEUMATIC_OBJECT)
-    printf("set pneumatic default directions\n\n\nset pneumatic default directions\n\n\nset pneumatic default directions");
+    printf("set pneumatic default directions\n\n\nset pneumatic default directions\n\n\nset pneumatic default directions\n\n");
     SetPneumaticDefaultDirections();
   #endif
 
@@ -67,6 +67,8 @@ void Robot::RobotPeriodic() { // runs after mode specific
   #if PNEUMATIC_OBJECT
     UpdatePneumatics();
   #endif
+
+  masterLoopCount += 1;
 
   // printf("\n");
 }
@@ -362,17 +364,25 @@ void Robot::HandleJoysticks() {
   }
 
   #if PNEUMATIC_OBJECT 
-    driveGearboxes.Toggle(rightJoystick.GetRawButtonPressed(2));;
-    ballPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(3));
-    intakeArm.Toggle(rightJoystick.GetRawButtonPressed(5));
-    hatchPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(4));
-    jumper.Toggle(rightJoystick.GetRawButtonPressed(6));
-  #else
+    driveGearboxes.ToggleOverride(rightJoystick.GetRawButtonPressed(2));;
+    intakeArm.ToggleOverride(rightJoystick.GetRawButtonPressed(3));
+    ballPusher.ToggleOverride(rightJoystick.GetRawButtonPressed(6));
+    // ballPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(5));
+    #if COMP_ROBOT
+      hatchPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(4));
+      jumper.Toggle(rightJoystick.GetRawButtonPressed(6));
+      ballPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(5));
+    #else
+      ballPusher.ToggleTimed(2.5, rightJoystick.GetRawButtonPressed(4));
+    #endif
+  #else // TODO??
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
-    ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
-    ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
+    #if COMP_ROBOT
+      ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
+      ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
+    #endif
   #endif
 
   if (rightJoystick.GetRawButtonPressed(1)) {
@@ -412,14 +422,18 @@ void Robot::RunElevator() {
   SD::PutString("elevatorState", elevatorStateNames[elevatorState]);
   SD::PutString("elevatorDestination", elevatorDestinationNames[elevatorDestination]);
   SD::PutNumber("current elevator target", elevatorHeights[elevatorDestination]);
+  SD::PutNumber("talon's target", elevator.GetClosedLoopTarget());
   
   if (elevatorState == CALIBRATING) {
     #if ELEVATOR_SENSOR_EXIST
       elevatorCalibratingLoopCount += 1;
       // printf("in elevator calibrating\n"); 
-      if (elevatorCalibratingLoopCount < 325) {
+
+      if (elevatorCalibratingLoopCount < 400) {
         if (!elevatorAtZero) {
+          if (masterLoopCount & 25 == 0) {
           printf("in cali - not at zero\n");
+          }
           // elevator.Set(ControlMode::Velocity, -0.0001);
           elevator.Set(ControlMode::PercentOutput, downSpeed);
         } else {
@@ -454,12 +468,12 @@ void Robot::RunElevator() {
         elevator.Set(ControlMode::PercentOutput, (-gamerJoystick.GetRawAxis(5) /*+ ELEVATOR_FEEDFORWARD*/) );
         break;
       #if ELEVATOR_SENSOR_EXIST
-      case DOWN:  
-        elevator.Set(ControlMode::PercentOutput, downSpeed);
-        if (elevatorAtZero) {
-          elevatorDestination = MANUAL;
-        }
-        break;
+        case DOWN:  
+          elevator.Set(ControlMode::PercentOutput, downSpeed);
+          if (elevatorAtZero) {
+            elevatorDestination = MANUAL;
+          }
+          break;
       #endif
       case MECHANICAL_LOW:
         break;
@@ -468,22 +482,24 @@ void Robot::RunElevator() {
       case BALL_CARGO:
       case HATCH_CARGO:
         break;
-      case HATCH_LOW:
       case HATCH_MID:
-        _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
-        elevator.Set(ControlMode::Position, _pos);
-        break;
+        // _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
+        // elevator.Set(ControlMode::Position, _pos);
+        // break;
       case HATCH_HIGH:
-        _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
-        elevator.Set(ControlMode::Position, _pos);
-        break;
+        // _pos = dash->GetNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
+        // elevator.Set(ControlMode::Position, _pos);
+        // break;
       case BALL_LOW:
-        _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
-        elevator.Set(ControlMode::Position, _pos);
-        break;
+        // _pos = dash->GetNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
+        // elevator.Set(ControlMode::Position, _pos);
+        // break;
+      case HATCH_LOW:
       case BALL_MID:
       case BALL_HIGH:
-        printf("setting to a preset\n");
+        if (masterLoopCount % 50 == 0) {
+          printf("setting to a preset\n");
+        }
         // if (curPos < elevatorHeights[elevatorDestination] - 100) {
         //   elevator.Set(ControlMode::PercentOutput, 0.6);
         // } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
@@ -506,14 +522,14 @@ void Robot::RunElevator() {
       } else {
         elevator.ConfigPeakOutputReverse(-1.0);
       }
-    // auto x = new int[2]{0, -1};
-    // elevator.ConfigPeakOutputReverse(new int[2]{0, -1}[!elevatorAtZero])
+      // auto x = new int[2]{0, -1};
+      // elevator.ConfigPeakOutputReverse(new int[2]{0, -1}[!elevatorAtZero])
     #endif
 
     double percentOutput = elevator.GetMotorOutputPercent();
     double voltageOutput = elevator.GetMotorOutputVoltage();
     if (percentOutput > 2 || voltageOutput != 0.0) {
-      printf("elevator output: %f percent, %f volts", percentOutput, voltageOutput);
+      // printf("elevator output: %f percent, %f volts", percentOutput, voltageOutput);
     }
   } 
 }
@@ -524,8 +540,6 @@ void Robot::RunElevator2() {
 
 void Robot::ChooseElevatorMode() {
   ElevatorDestination prevDest = elevatorDestination;
-
-
 
   if (buttonJoystick.GetRawButtonPressed(7)) {
     elevatorDestination = HATCH_HIGH;  
@@ -759,7 +773,9 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
 }
 
 void Robot::Align(Robot::DistanceType type) {
-  printf("in align : type %s\n", distanceTypeNames[type].c_str());
+  if (masterLoopCount % 20 == 0) {
+    printf("in align : type %s\n", distanceTypeNames[type].c_str());
+  }
   // double kP = 1.0;
   // double kI = 0.0;
   // double kD = 0.0;
@@ -774,7 +790,9 @@ void Robot::Align(Robot::DistanceType type) {
       right = lidarDist.right;
       tolerance = 80 * toleranceScalar;
     #else
-      printf("no lidar - can't lidar align (line %i)\n", __LINE__);
+      if (masterLoopCount % 20 == 0) {
+        printf("no lidar - can't lidar align (line %i)\n", __LINE__);
+      }
     #endif
   } else if (type == ULTRASONIC) {
     #if ULTRA_EXIST
@@ -782,7 +800,9 @@ void Robot::Align(Robot::DistanceType type) {
       right = ultraDist.right;
       tolerance = 240 * toleranceScalar;
     #else
-      printf("no ultra - can't ultra align (line %i)\n", __LINE__);
+      if (masterLoopCount % 20 == 0) {
+        printf("no ultra - can't ultra align (line %i)\n", __LINE__);
+      }
     #endif
   }
 
@@ -938,7 +958,7 @@ void Robot::Testing() {
 void Robot::SetPneumaticDefaultDirections() {
   #if (!PNEUMATIC_OBJECT)
     #if COMP_ROBOT
-      ShiftGears(Direction::down, driveGearboxes); // TODOCOMP: remove?
+      ShiftGears(Direction::down, driveGearboxes); // TODO_COMP: remove?
       driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
       intakeArm.Set(frc::DoubleSolenoid::kReverse);
       ballPusher.Set(frc::DoubleSolenoid::kReverse);
@@ -949,8 +969,8 @@ void Robot::SetPneumaticDefaultDirections() {
       driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
       intakeArm.Set(frc::DoubleSolenoid::kForward);
       ballPusher.Set(frc::DoubleSolenoid:: kForward);  // good?
-      hatchPusher.Set(frc::DoubleSolenoid::kForward); // good?
-      jumper.Set(frc::DoubleSolenoid::kForward);
+      // hatchPusher.Set(frc::DoubleSolenoid::kForward); // good?
+      // jumper.Set(frc::DoubleSolenoid::kForward);
     #endif
   #endif
 }
@@ -976,15 +996,15 @@ void Robot::SensorInit() {
 
 void Robot::UpdatePneumatics() {
   #if PNEUMATIC_OBJECT
-    driveGearboxes.PenguinUpdate();
-    intakeArm.PenguinUpdate();
     ballPusher.PenguinUpdate();
-    hatchPusher.PenguinUpdate();
-    jumper.PenguinUpdate();
+    #if COMP_ROBOT
+      hatchPusher.PenguinUpdate();
+      // jumper.PenguinUpdate();
+    #endif
 
-    if (hatchPusher.busy) {
-      printf("hatchPusher busy");
-    } else {printf("hatchpusher not busy");}
+    // if (ballPusher.busy) {
+    //   printf("ballPusher busy\n");
+    // } else {printf("ballPusher not busy\n");}
   #endif
 }
 

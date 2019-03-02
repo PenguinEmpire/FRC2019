@@ -1,5 +1,7 @@
 #pragma once
 
+#include "frc/I2C.h"
+
 constexpr int dio0 = 0;
 constexpr int dio1 = 1;
 constexpr int dio2 = 2;
@@ -52,7 +54,8 @@ constexpr float PULSE_IN = 0.16;
 #define ULTRA_EXIST           false
 #define LIMELIGHT_EXIST       true
 #define ELEVATOR_SENSOR_EXIST false
-#define PNEUMATIC_OBJECT      false   
+#define PNEUMATIC_OBJECT      false
+#define DO_PRINTF             true  
 
 // COMP ROBOT VALUES
 

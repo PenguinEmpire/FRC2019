@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "PenguinConstants.h"
+
 #include <string>
 #include <unordered_map>
 
@@ -17,7 +19,6 @@
 #include "networktables/NetworkTableEntry.h"
 #include "networktables/NetworkTableInstance.h"
 
-#include "PenguinConstants.h"
 #include "PenguinJoystick.h"
 #include "Lidar.h"
 
@@ -40,7 +41,7 @@ class Robot : public frc::TimedRobot {
     up, down, left, right, backward, forward
   } currentGear = down;
 
-  #if !PNEUMATIC_OBJECT
+  #if (!PNEUMATIC_OBJECT)
   /*const static*/ unordered_map<frc::DoubleSolenoid::Value, frc::DoubleSolenoid::Value> reverseStates = {
     {frc::DoubleSolenoid::kReverse, frc::DoubleSolenoid::kForward}, 
     {frc::DoubleSolenoid::kForward, frc::DoubleSolenoid::kReverse}, 
@@ -147,24 +148,33 @@ class Robot : public frc::TimedRobot {
 	};
 
   unordered_map<Robot::ElevatorDestination, int> elevatorHeights = {
-      // {MANUAL,          1 /* placeholder!!!! TODO */ },
-      // {MECHANICAL_LOW,  3660 /* placeholder!!!! TODO */ },
-      // {PICKUP,          1 /* placeholder!!!! TODO */ },
-      // {HATCH_CARGO,     1 /* placeholder!!!! TODO */ },
-      // {HOLD,            1 /* placeholder!!!! TODO */},
+      // {MANUAL,          1 /* placeholder!!!! */ },
+      // {MECHANICAL_LOW,  3660 /* placeholder!!!! */ },
+      // {PICKUP,          1 /* placeholder!!!! */ },      // TODO on all
+      // {HATCH_CARGO,     1 /* placeholder!!!! */ },
+      // {HOLD,            1 /* placeholder!!!! */},
 
-      {HATCH_LOW,  -1000}, // TODO : surely 0?
-      {BALL_CARGO,      1 /* placeholder!!!! TODO */ },
       #if COMP_ROBOT
-        {HATCH_MID,   9761}, //9761
-        {HATCH_HIGH,  20000}, //20000
+        {HATCH_LOW,  -1000}, // TODO : surely 0?
+        {HATCH_MID,   9761}, 
+        {HATCH_HIGH,  20000}, 
+        {BALL_LOW,    4100 }, // TODO_COMP
+        {BALL_MID,    16800}, // TODO_COMP
+        {BALL_HIGH,   28550},  // TODO_COMP
+
+        {BALL_CARGO,  12000 /* placeholder!!!! TODO */ },
       #else
+        #if (!ELEVATOR_SENSOR_EXIST)
+        {HATCH_LOW,       0}, // TODO : surely 0?
+        #else
+        {HATCH_LOW,       0}, 
+        #endif
         {HATCH_MID,   12000},
         {HATCH_HIGH,  24200},
+        {BALL_LOW,     4100},
+        {BALL_MID,    16800},
+        {BALL_HIGH,   28550}
       #endif
-      {BALL_LOW,    4100 },
-      {BALL_MID,    16800},
-      {BALL_HIGH,   28550}
   };
 
   unordered_map<Robot::AlignPosition, double> alignAngles {
@@ -188,6 +198,7 @@ class Robot : public frc::TimedRobot {
 	};
 
   bool driveInverted = false;
+  int masterLoopCount = 0;
 
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
   #if LIMELIGHT_EXIST 
@@ -302,16 +313,16 @@ class Robot : public frc::TimedRobot {
   #else // TODOOO
     #if PNEUMATIC_OBJECT
       Pneumatic driveGearboxes{pcm0, pch0, pch1, frc::DoubleSolenoid::kReverse};
-      Pneumatic intakeArm{     pcm0, pch6, pch7, frc::DoubleSolenoid::kReverse};
-      Pneumatic ballPusher{    pcm0, pch2, pch3, frc::DoubleSolenoid::kForward}; // good?
-      Pneumatic hatchPusher{   pcm0, pch4, pch5, frc::DoubleSolenoid::kForward}; // good?
-      Pneumatic jumper{           1,    0,    1, frc::DoubleSolenoid::kForward};
+      Pneumatic ballPusher{     pcm0, pch6, pch7, frc::DoubleSolenoid::kReverse};
+      Pneumatic intakeArm{    pcm0, pch2, pch3, frc::DoubleSolenoid::kForward}; // good?
+      // Pneumatic hatchPusher{   pcm0, pch4, pch5, frc::DoubleSolenoid::kForward}; // good?
+      // Pneumatic jumper{           1,    0,    1, frc::DoubleSolenoid::kForward};
     #else
       frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-      frc::DoubleSolenoid intakeArm{     pcm0, pch6, pch7};
-      frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
-      frc::DoubleSolenoid hatchPusher{   pcm0, pch4, pch5};
-      frc::DoubleSolenoid jumper{           1,    0,    1};
+      frc::DoubleSolenoid ballPusher{     pcm0, pch6, pch7};
+      frc::DoubleSolenoid intakeArm{    pcm0, pch2, pch3};
+      // frc::DoubleSolenoid hatchPusher{   pcm0, pch4, pch5};
+      // frc::DoubleSolenoid jumper{           1,    0,    1};
     #endif
   #endif
 
