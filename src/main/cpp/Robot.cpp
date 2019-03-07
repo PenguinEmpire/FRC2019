@@ -35,7 +35,11 @@ void Robot::RobotInit() {
   SD::PutNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
   SD::PutNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
 
+  printf("robot init test");
+
   SensorInit();
+  timer->Reset();
+  timer->Start();
 
   compressor.SetClosedLoopControl(true);
 
@@ -57,20 +61,61 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() { // runs after mode specific
+  #if PROFILING
+  now = timer->Get();
+  prev_now = now;
+  start_now = now;
+  printf("Starting RobotPeriodic : %f\n", now);
+  #endif
+
   Testing();
+
+  #if PROFILING
+  now = timer->Get();
+  // printf("Ran Testing : %f", now);
+  printf("Running Testing took : %f\n", now - prev_now);
+  prev_now = now;
+  #endif
+
   GetDistances();
+
+  #if PROFILING
+  now = timer->Get();
+  // printf("Got distances : %f", now);
+  printf("Getting distances took : %f\n", now - prev_now);
+  prev_now = now;
+  #endif
 
   #if ELEVATOR_SENSOR_EXIST
     elevatorAtZero = !elevatorZero->Get();
+
+    #if PROFILING
+    now = timer->Get();
+    // printf("Updated `elevatorAtZero` : %f", now);
+    printf("Updating `elevatorAtZero` took : %f\n", now - prev_now);
+    prev_now = now;
+    #endif
   #endif
+
 
   #if PNEUMATIC_OBJECT
     UpdatePneumatics();
+
+    #if PROFILING
+    now = timer->Get();
+    // printf("Updated pneumatics objects : %f", now);
+    printf("Updating pneumatics objects took : %f\n", now - prev_now);
+    prev_now = now;
+    #endif
   #endif
 
   masterLoopCount += 1;
 
   // printf("\n");
+
+  #if PROFILING
+  printf("TeleopPeriodic took : %f\n", now - start_now);
+  #endif
 }
 
 /**
@@ -119,11 +164,52 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {}
  
 void Robot::TeleopPeriodic() {
+  #if PROFILING
+  now = timer->Get();
+  prev_now = now;
+  start_now = now;
+  printf("Starting TeleopPeriodic : %f\n", now);
+  #endif
+
   HandleJoysticks();
-  RunElevator(); 
+
+  #if PROFILING
+  now = timer->Get();
+  // printf("Handled joysticks : %f", now);
+  printf("Handling joysticks took : %f\n", now - prev_now);
+  prev_now = now;
+  #endif
+  
+  RunElevator();
+
+  #if PROFILING
+  now = timer->Get();
+  // printf("Ran elevator : %f", now);
+  printf("Running elevator took : %f\n", now - prev_now);
+  prev_now = now;
+  #endif
+
   intakeMotor.Set(gamerJoystick.GetRawAxis(1));
 
-  StopForwardMovement();
+  #if PROFILING
+  now = timer->Get();
+  // printf("Set intake motor : %f", now);
+  printf("Setting intake motor took : %f\n", now - prev_now);
+  prev_now = now;
+  #endif
+
+  #if (LIDAR_EXIST || ULTRA_EXIST)
+    StopForwardMovement();
+  #endif
+
+  #if PROFILING
+  now = timer->Get();
+  // printf("Stopped forward movement? : %f", now);
+  printf("Stopping forward movement took : %f\n", now - prev_now);
+  prev_now = now;
+
+  printf("TeleopPeriodic took : %f\n\n", now - start_now);
+  #endif
 }
 
 void Robot::TestPeriodic() {}
@@ -152,6 +238,8 @@ void Robot::DisabledPeriodic() {
   buttonJoystick.GetRawButtonPressed(12);  
 
   gamerJoystick.GetRawButtonPressed(6);
+  gamerJoystick.GetRawButtonPressed(1);
+  gamerJoystick.GetRawButtonPressed(4);
   leftJoystick.GetRawButtonPressed(2);
 }
 
@@ -202,8 +290,10 @@ void Robot::TalonInit() {
     l2.SetNeutralMode(NeutralMode::Brake);
     r2.SetNeutralMode(NeutralMode::Brake);
 
+    #if OPEN_LOOP_RAMP
     l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+    #endif
 
     // r1.SetSafety
   #else
@@ -345,16 +435,16 @@ void Robot::HandleJoysticks() {
     printf("calling align(navx)\n");
     Align(DistanceType::NAVX);
   } else { // manual driving
-    #if (COMP_ROBOT || PRACTICE_TALON)
-    // l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
-    // r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+    #if ((COMP_ROBOT || PRACTICE_TALON) && OPEN_LOOP_RAMP)
+      l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+      r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     #endif
 
     SD::PutBoolean("appr-ultrasonic", false);
     SD::PutBoolean("appr-lidar", false);
 
     // Joystick Inputs for driving
-    if(fabs(left - right) < 0.1 /* rightJoystick.GetRawAxis(3) */ ) { // !!!!!!
+    if(fabs(left - right) < 0.1 /* rightJoystick.GetRawAxis(3) */ ) { // !!!!!! - TODO?
       both = (left + right) / 2;
       DriveBoth (calculateDampenedJoystick(both ));
     } else {
@@ -377,10 +467,10 @@ void Robot::HandleJoysticks() {
     #endif
   #else // TODO??
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-    ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher);
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), ballPusher);
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
     #if COMP_ROBOT
-      ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
+      ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), hatchPusher);
       ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
     #endif
   #endif
@@ -417,13 +507,16 @@ void Robot::RunElevator() {
   SD::PutNumber("absPos", absPos);
   SD::PutNumber("absPos2", absPos2);
 
-  double downSpeed = -0.6;
-
   SD::PutString("elevatorState", elevatorStateNames[elevatorState]);
   SD::PutString("elevatorDestination", elevatorDestinationNames[elevatorDestination]);
   SD::PutNumber("current elevator target", elevatorHeights[elevatorDestination]);
-  SD::PutNumber("talon's target", elevator.GetClosedLoopTarget());
-  
+  if (elevator.GetControlMode() == ctre::phoenix::motorcontrol::ControlMode::Position) {
+    SD::PutNumber("talon's target", elevator.GetClosedLoopTarget());
+  } else {
+    SD::PutString("talon's target", "N/A");
+  }
+
+
   if (elevatorState == CALIBRATING) {
     #if ELEVATOR_SENSOR_EXIST
       elevatorCalibratingLoopCount += 1;
@@ -435,7 +528,7 @@ void Robot::RunElevator() {
           printf("in cali - not at zero\n");
           }
           // elevator.Set(ControlMode::Velocity, -0.0001);
-          elevator.Set(ControlMode::PercentOutput, downSpeed);
+          elevator.Set(ControlMode::PercentOutput, ELEVATOR_DOWNSPEED);
         } else {
           printf("in cali - at zero\n");
           elevator.Set(ControlMode::PercentOutput, 0.0);
@@ -469,7 +562,7 @@ void Robot::RunElevator() {
         break;
       #if ELEVATOR_SENSOR_EXIST
         case DOWN:  
-          elevator.Set(ControlMode::PercentOutput, downSpeed);
+          elevator.Set(ControlMode::PercentOutput, ELEVATOR_DOWNSPEED);
           if (elevatorAtZero) {
             elevatorDestination = MANUAL;
           }
@@ -479,9 +572,9 @@ void Robot::RunElevator() {
         break;
       case PICKUP:
         break;
-      case BALL_CARGO:
       case HATCH_CARGO:
         break;
+      case BALL_CARGO:
       case HATCH_MID:
         // _pos = dash->GetNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
         // elevator.Set(ControlMode::Position, _pos);
@@ -500,14 +593,16 @@ void Robot::RunElevator() {
         if (masterLoopCount % 50 == 0) {
           printf("setting to a preset\n");
         }
-        // if (curPos < elevatorHeights[elevatorDestination] - 100) {
-        //   elevator.Set(ControlMode::PercentOutput, 0.6);
-        // } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
-        //   elevator.Set(ControlMode::PercentOutput, -0.6);
-        // } else {
-        //   elevator.Set(ControlMode::PercentOutput, 0.0);
-        //   elevatorDestination = MANUAL;
-        // }
+/*      brute-force up or down at 0.6
+        if (curPos < elevatorHeights[elevatorDestination] - 100) {
+          elevator.Set(ControlMode::PercentOutput, 0.6);
+        } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
+          elevator.Set(ControlMode::PercentOutput, -0.6);
+        } else {
+          elevator.Set(ControlMode::PercentOutput, 0.0);
+          elevatorDestination = MANUAL;
+        }
+*/
         elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
         // elevator.Set(ControlMode::Position, 200);
         break;
@@ -516,8 +611,15 @@ void Robot::RunElevator() {
         break;
     }
 
-    #if ELEVATOR_SENSOR_EXIST
-      if (elevatorAtZero) {
+    #if ELEVATOR_DOWN_PROTECTION
+      bool elevatorNotAllowedDown;
+      #if ELEVATOR_SENSOR_EXIST
+        elevatorNotAllowedDown = elevatorAtZero;
+      #else
+        elevatorNotAllowedDown = (absPos2 < 3);
+      #endif
+
+      if (elevatorNotAllowedDown) {
         elevator.ConfigPeakOutputReverse(0.0);
       } else {
         elevator.ConfigPeakOutputReverse(-1.0);
@@ -526,11 +628,15 @@ void Robot::RunElevator() {
       // elevator.ConfigPeakOutputReverse(new int[2]{0, -1}[!elevatorAtZero])
     #endif
 
-    double percentOutput = elevator.GetMotorOutputPercent();
-    double voltageOutput = elevator.GetMotorOutputVoltage();
-    if (percentOutput > 2 || voltageOutput != 0.0) {
-      // printf("elevator output: %f percent, %f volts", percentOutput, voltageOutput);
-    }
+    #if DO_PRINTF
+      if (masterLoopCount % 15 == 0) {
+        // double percentOutput = elevator.GetMotorOutputPercent();
+        // double voltageOutput = elevator.GetMotorOutputVoltage();
+        // if (percentOutput > 2 || voltageOutput != 0.0) {
+        //   // printf("elevator output: %f percent, %f volts", percentOutput, voltageOutput);
+        // }
+      }
+    #endif
   } 
 }
 
@@ -549,7 +655,7 @@ void Robot::ChooseElevatorMode() {
     elevatorDestination = HATCH_MID;
   } else if (buttonJoystick.GetRawButtonPressed(10)) {
     elevatorDestination = BALL_MID;
-  } else if (buttonJoystick.GetRawButtonPressed(11)) {
+  } else if (buttonJoystick.GetRawButtonPressed(11) || gamerJoystick.GetRawButtonPressed(1)) {
     #if ELEVATOR_SENSOR_EXIST
       elevatorDestination = DOWN;
     #else
@@ -559,17 +665,21 @@ void Robot::ChooseElevatorMode() {
     elevatorDestination = BALL_LOW;
   } else if (gamerJoystick.GetRawButtonPressed(6)) {
     elevatorDestination = MANUAL;
+  } else if (gamerJoystick.GetRawButtonPressed(4)) {
+    elevatorDestination = BALL_CARGO;
   }
 
-  // if (prevDest == MANUAL || prevDest == HOLD) {
-  //   elevator.SelectProfileSlot(1, 0); // less power - fill vals
-  // } else {
-  //   if (elevatorDestination > prevDest) {
-  //     elevator.SelectProfileSlot(0, 0);
-  //   } else {
-  //     elevator.SelectProfileSlot(1, 0);
-  //   } 
-  // }
+/* different PID profiles for going up and down
+  if (prevDest == MANUAL || prevDest == HOLD) {
+    elevator.SelectProfileSlot(1, 0); // less power - fill vals
+  } else {
+    if (elevatorDestination > prevDest) {
+      elevator.SelectProfileSlot(0, 0);
+    } else {
+      elevator.SelectProfileSlot(1, 0);
+    } 
+  }
+*/
 }
 
 void Robot::ChooseAlignMode() {
@@ -624,15 +734,21 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
 }
 
 void Robot::StopForwardMovement() {
-  Robot::distances distSource;
-  #if LIDAR_EXIST
-  distSource = lidarDist;
-  #elif ULTRA_EXIST
-  distSource = ultraDist;
+  #if (LIDAR_EXIST || ULTRA_EXIST)
+    Robot::distances distSource;
+    int minDist;
   #endif
 
-  #if ULTRA_EXIST
-    if (distSource.left < 250 || ultraDist.right < 250) {
+  #if LIDAR_EXIST
+    distSource = lidarDist;
+    minDist = 8;
+  #elif ULTRA_EXIST
+    distSource = ultraDist;
+    minDist = 250;
+  #endif
+
+  #if (WALL_PROTECTION && (LIDAR_EXIST || ULTRA_EXIST))
+    if (distSource.left < minDist || distSource.right < minDist) {
       l1.ConfigPeakOutputForward(0.0);
       r1.ConfigPeakOutputForward(0.0);
     } else {
@@ -640,7 +756,6 @@ void Robot::StopForwardMovement() {
       r1.ConfigPeakOutputForward(1.0);
     }
   #endif
-
 }
 
 
@@ -967,7 +1082,7 @@ void Robot::SetPneumaticDefaultDirections() {
     #else // TODO
       // ShiftGears(Direction::down, driveGearboxes);
       driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
-      intakeArm.Set(frc::DoubleSolenoid::kForward);
+      intakeArm.Set(frc::DoubleSolenoid::kReverse);
       ballPusher.Set(frc::DoubleSolenoid:: kForward);  // good?
       // hatchPusher.Set(frc::DoubleSolenoid::kForward); // good?
       // jumper.Set(frc::DoubleSolenoid::kForward);

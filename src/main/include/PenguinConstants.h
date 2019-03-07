@@ -8,7 +8,7 @@ constexpr int dio2 = 2;
 constexpr int dio3 = 3;
 constexpr int dio4 = 4;
 constexpr int dio5 = 5;
-constexpr int dio6 = 6;
+constexpr int dio6 = 6;     
 constexpr int dio7 = 7;
 constexpr int dio8 = 8;
 constexpr int dio9 = 9;
@@ -48,14 +48,21 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
 
-#define COMP_ROBOT            false
-#define PRACTICE_TALON        true
-#define LIDAR_EXIST           true 
-#define ULTRA_EXIST           false
-#define LIMELIGHT_EXIST       true
-#define ELEVATOR_SENSOR_EXIST false
-#define PNEUMATIC_OBJECT      false
-#define DO_PRINTF             true  
+#define COMP_ROBOT                false
+#define PRACTICE_TALON            true
+#define LIDAR_EXIST               true 
+#define ULTRA_EXIST               false
+#define LIMELIGHT_EXIST           false
+#define ELEVATOR_SENSOR_EXIST     false
+#define PNEUMATIC_OBJECT          false
+
+#define DO_PRINTF                 true
+#define PROFILING                 false
+
+#define OPEN_LOOP_RAMP            true
+
+#define WALL_PROTECTION           false // probably don't change
+#define ELEVATOR_DOWN_PROTECTION  true
 
 // COMP ROBOT VALUES
 
@@ -89,8 +96,8 @@ constexpr int ELEVATOR_MOTOR_CAN_ADDRESS = 5;
 #endif
 
 #if LIDAR_EXIST
-    constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kOnboard;
-    constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kMXP;
+    constexpr frc::I2C::Port LEFT_LIDAR_PORT = frc::I2C::kMXP;
+    constexpr frc::I2C::Port RIGHT_LIDAR_PORT = frc::I2C::kOnboard;
 #endif
 
 //--
@@ -100,6 +107,7 @@ constexpr double DRIVE_OPENLOOP_RAMP = 0.5;
 //--
 
 constexpr double ELEVATOR_FEEDFORWARD = 0.2;
+constexpr double ELEVATOR_DOWNSPEED = -0.6;
 
 
 /** # where the pneumatics are plugged in

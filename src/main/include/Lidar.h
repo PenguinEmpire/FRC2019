@@ -15,19 +15,19 @@ public:
     }
 
     Lidar(bool throughNAVX) {
-        printf("lidar bool contructor");
+        printf("in lidar bool contructor\n");
         if(throughNAVX) {
             I2CBus = new frc::I2C(frc::I2C::kMXP, Lidar::ADDRESS_DEFAULT);
-            printf("lidar constructed throughNAVX");
         } else {
             I2CBus = new frc::I2C(frc::I2C::kOnboard, Lidar::ADDRESS_DEFAULT);
         }
+        printf("lidar constructed through bool constructor\n");
         frc::Wait(1.);
     }
 
     Lidar(frc::I2C::Port port) {
         I2CBus = new frc::I2C(port, Lidar::ADDRESS_DEFAULT);
-        printf("lidar constructed through port constructor");
+        printf("lidar constructed through port constructor\n");
         frc::Wait(1.);
 
     }

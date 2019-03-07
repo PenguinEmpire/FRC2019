@@ -167,13 +167,15 @@ class Robot : public frc::TimedRobot {
         #if (!ELEVATOR_SENSOR_EXIST)
         {HATCH_LOW,       0}, // TODO : surely 0?
         #else
-        {HATCH_LOW,       0}, 
+        {HATCH_LOW,       0}, // TODO : surely 0?
         #endif
         {HATCH_MID,   12000},
         {HATCH_HIGH,  24200},
         {BALL_LOW,     4100},
         {BALL_MID,    16800},
-        {BALL_HIGH,   28550}
+        {BALL_HIGH,   28550},
+
+        {BALL_CARGO,  10500}
       #endif
   };
 
@@ -294,6 +296,9 @@ class Robot : public frc::TimedRobot {
 
   AHRS* ahrs = new AHRS(I2C::Port::kMXP);
   frc::Timer* timer = new frc::Timer();
+  double now;
+  double prev_now;
+  double start_now;
 
   frc::Compressor compressor{pcm0};
   #if COMP_ROBOT
@@ -314,7 +319,7 @@ class Robot : public frc::TimedRobot {
     #if PNEUMATIC_OBJECT
       Pneumatic driveGearboxes{pcm0, pch0, pch1, frc::DoubleSolenoid::kReverse};
       Pneumatic ballPusher{     pcm0, pch6, pch7, frc::DoubleSolenoid::kReverse};
-      Pneumatic intakeArm{    pcm0, pch2, pch3, frc::DoubleSolenoid::kForward}; // good?
+      Pneumatic intakeArm{    pcm0, pch2, pch3, frc::DoubleSolenoid::kReverse}; // good?
       // Pneumatic hatchPusher{   pcm0, pch4, pch5, frc::DoubleSolenoid::kForward}; // good?
       // Pneumatic jumper{           1,    0,    1, frc::DoubleSolenoid::kForward};
     #else
