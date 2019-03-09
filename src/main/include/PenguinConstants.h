@@ -52,14 +52,15 @@ constexpr float PULSE_IN = 0.16;
 #define PRACTICE_TALON            true
 #define LIDAR_EXIST               true 
 #define ULTRA_EXIST               false
-#define LIMELIGHT_EXIST           false
+#define LIMELIGHT_EXIST           true
 #define ELEVATOR_SENSOR_EXIST     false
 #define PNEUMATIC_OBJECT          false
 
 #define DO_PRINTF                 true
 #define PROFILING                 false
+#define DO_EXTRA_IO               false
 
-#define OPEN_LOOP_RAMP            true
+#define OPEN_LOOP_RAMP            false
 
 #define WALL_PROTECTION           false // probably don't change
 #define ELEVATOR_DOWN_PROTECTION  true

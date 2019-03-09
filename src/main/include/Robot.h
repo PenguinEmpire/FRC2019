@@ -223,9 +223,14 @@ class Robot : public frc::TimedRobot {
   // Lift stage mag sensors
   #if ELEVATOR_SENSOR_EXIST
     DIO* elevatorZero;
-    bool elevatorAtZero = false;
   #endif
   int elevatorCalibratingLoopCount = 0;
+
+  bool elevatorAtZero = false;
+
+  int curPos;
+  int absPos;
+  int absPos2;
 
 /* deprecated
   DIO* liftBottom;

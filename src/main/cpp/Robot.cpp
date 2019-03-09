@@ -35,7 +35,7 @@ void Robot::RobotInit() {
   SD::PutNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
   SD::PutNumber("BALL_LOW", elevatorHeights[BALL_LOW]);
 
-  printf("robot init test");
+  printf("robot init test\n");
 
   SensorInit();
   timer->Reset();
@@ -88,13 +88,15 @@ void Robot::RobotPeriodic() { // runs after mode specific
 
   #if ELEVATOR_SENSOR_EXIST
     elevatorAtZero = !elevatorZero->Get();
+  #else
+    elevatorAtZero = (absPos2 < 3);
+  #endif
 
-    #if PROFILING
+  #if PROFILING
     now = timer->Get();
     // printf("Updated `elevatorAtZero` : %f", now);
     printf("Updating `elevatorAtZero` took : %f\n", now - prev_now);
     prev_now = now;
-    #endif
   #endif
 
 
@@ -102,10 +104,10 @@ void Robot::RobotPeriodic() { // runs after mode specific
     UpdatePneumatics();
 
     #if PROFILING
-    now = timer->Get();
-    // printf("Updated pneumatics objects : %f", now);
-    printf("Updating pneumatics objects took : %f\n", now - prev_now);
-    prev_now = now;
+      now = timer->Get();
+      // printf("Updated pneumatics objects : %f", now);
+      printf("Updating pneumatics objects took : %f\n", now - prev_now);
+      prev_now = now;
     #endif
   #endif
 
@@ -259,7 +261,7 @@ void Robot::TalonInit() {
   elevator.ConfigClosedloopRamp(0.02);
 
   elevator.Config_kP(0, 6.0, 10);
-  elevator.Config_kF(0, 0.2, 10);
+  elevator.Config_kF(0, 0.25, 10);
   elevator.Config_kD(0, 80, 10);
 
 
@@ -291,11 +293,12 @@ void Robot::TalonInit() {
     r2.SetNeutralMode(NeutralMode::Brake);
 
     #if OPEN_LOOP_RAMP
-    l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
-    r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+      l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
+      r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     #endif
 
     // r1.SetSafety
+
   #else
     Spark_l1.SetInverted(false);
     Spark_l2.SetInverted(false);
@@ -405,7 +408,7 @@ void Robot::HandleJoysticks() {
     GetLimelight();
   #endif
 
-  #if (COMP_ROBOT || PRACTICE_TALON)
+  #if (OPEN_LOOP_RAMP && (COMP_ROBOT || PRACTICE_TALON))
     l1.ConfigOpenloopRamp(0.0);
     r1.ConfigOpenloopRamp(0.0);
   #endif
@@ -500,11 +503,13 @@ void Robot::HandleJoysticks() {
 }
 
 void Robot::RunElevator() {
-  int curPos = elevator.GetSensorCollection().GetPulseWidthPosition();
-  int absPos = elevator.GetSelectedSensorPosition() & 0xFFF;
-  int absPos2 = elevator.GetSelectedSensorPosition();
-  SD::PutNumber("curPos", curPos);
-  SD::PutNumber("absPos", absPos);
+  #if DO_EXTRA_IO
+    curPos = elevator.GetSensorCollection().GetPulseWidthPosition();
+    absPos = elevator.GetSelectedSensorPosition() & 0xFFF;
+    SD::PutNumber("curPos", curPos);
+    SD::PutNumber("absPos", absPos);
+  #endif
+  absPos2 = elevator.GetSelectedSensorPosition();
   SD::PutNumber("absPos2", absPos2);
 
   SD::PutString("elevatorState", elevatorStateNames[elevatorState]);
@@ -603,8 +608,11 @@ void Robot::RunElevator() {
           elevatorDestination = MANUAL;
         }
 */
-        elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
-        // elevator.Set(ControlMode::Position, 200);
+        if (elevatorDestination == HATCH_LOW && elevatorAtZero) {
+          elevator.Set(ControlMode::PercentOutput, 0.0);
+        } else {
+          elevator.Set(ControlMode::Position, elevatorHeights[elevatorDestination]);
+        }
         break;
       default:
         elevator.Set(ControlMode::PercentOutput, 0.0);
@@ -612,14 +620,7 @@ void Robot::RunElevator() {
     }
 
     #if ELEVATOR_DOWN_PROTECTION
-      bool elevatorNotAllowedDown;
-      #if ELEVATOR_SENSOR_EXIST
-        elevatorNotAllowedDown = elevatorAtZero;
-      #else
-        elevatorNotAllowedDown = (absPos2 < 3);
-      #endif
-
-      if (elevatorNotAllowedDown) {
+      if (elevatorAtZero) {
         elevator.ConfigPeakOutputReverse(0.0);
       } else {
         elevator.ConfigPeakOutputReverse(-1.0);
@@ -667,7 +668,7 @@ void Robot::ChooseElevatorMode() {
     elevatorDestination = MANUAL;
   } else if (gamerJoystick.GetRawButtonPressed(4)) {
     elevatorDestination = BALL_CARGO;
-  }
+  } 
 
 /* different PID profiles for going up and down
   if (prevDest == MANUAL || prevDest == HOLD) {
@@ -762,8 +763,8 @@ void Robot::StopForwardMovement() {
 void Robot::GetDistances() {
   // LIDAR
   #if LIDAR_EXIST
-  lidarDist.left = leftLidar->AquireDistance();
-  lidarDist.right = rightLidar->AquireDistance();  
+    lidarDist.left = leftLidar->AquireDistance();
+    lidarDist.right = rightLidar->AquireDistance();  
   #endif
 
   // ULTRASONIC
@@ -772,8 +773,8 @@ void Robot::GetDistances() {
   // ultraDist.right = rightUltrasonic->GetRangeInches();
   //   analoginput class
   #if ULTRA_EXIST
-  ultraDist.left  = analogUltrasonicL->GetAverageValue();
-  ultraDist.right = analogUltrasonicR->GetAverageValue();
+    ultraDist.left  = analogUltrasonicL->GetAverageValue();
+    ultraDist.right = analogUltrasonicR->GetAverageValue();
   #endif
   // int gotValueR = analogUltrasonicR->GetValue();
   // int gotValueL = analogUltrasonicL->GetValue();
@@ -840,7 +841,14 @@ void Robot::GetLimelight() {
 
   // P_align = 0.350 works well // TODO
 
-  double P_align = 0.35 * toleranceScalar;
+  #define use_tolerance_scalar false
+
+  #if use_tolerance_scalar
+    double P_align = 0.35 * toleranceScalar;
+  #else
+    double P_align = 0.35;
+  #endif
+  
   left_command  = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
   right_command = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
 
@@ -1032,8 +1040,8 @@ void Robot::Testing() {
 
   #if ELEVATOR_SENSOR_EXIST
     SD::PutBoolean("dio elevator", elevatorZero->Get());
-    SD::PutBoolean("elevatorAtZero", elevatorAtZero);
   #endif
+    SD::PutBoolean("elevatorAtZero", elevatorAtZero);
 
   // SD::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
   // SD::PutNumber("lineSensorMid", lineSensorMid->GetValue());
@@ -1057,6 +1065,7 @@ void Robot::Testing() {
   // SD::PutNumber( "ahrs->GetRoll()                 ", ahrs->GetRoll()                 );
   SD::PutNumber( "ahrs->GetYaw()                  ", ahrs->GetYaw()                  );
   // SD::PutBoolean("ahrs->IsCalibrating()           ", ahrs->IsCalibrating()           );
+  #if DO_EXTRA_IO
   SD::PutNumber( "ahrs->GetWorldLinearAccelX()    ", ahrs->GetWorldLinearAccelX()    );
   SD::PutNumber( "ahrs->GetWorldLinearAccelY()    ", ahrs->GetWorldLinearAccelY()    );
   SD::PutNumber( "ahrs->GetWorldLinearAccelZ()    ", ahrs->GetWorldLinearAccelZ()    );
@@ -1068,6 +1077,7 @@ void Robot::Testing() {
   SD::PutNumber( "ahrs->GetVelocityX()            ", ahrs->GetVelocityX()            );
   SD::PutNumber( "ahrs->GetVelocityY()            ", ahrs->GetVelocityY()            );
   SD::PutNumber( "ahrs->GetVelocityZ()            ", ahrs->GetVelocityZ()            );
+  #endif
 }
 
 void Robot::SetPneumaticDefaultDirections() {
