@@ -19,17 +19,17 @@ void Robot::RobotInit() {
 
   //-----------------------------------------------------------------------------------
 
-/* some deprecated sensor stuff
-  //Object Initialization
-  // liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
-  // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
-  // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
-  // LineSensorInit();
-  // #if ULTRA_EXIST
-  // serialUltrasonic->EnableTermination((char)31);
-  // serialUltrasonic->Reset();
-  // #endif
-*/
+  /* some deprecated sensor stuff
+    //Object Initialization
+    // liftTop = new frc::DigitalInput(DIO_ELEVATOR_TOP);
+    // liftMid = new frc::DigitalInput(DIO_ELEVATOR_MID);
+    // liftBottom = new frc::DigitalInput(DIO_ELEVATOR_BOTTOM);
+    // LineSensorInit();
+    // #if ULTRA_EXIST
+    // serialUltrasonic->EnableTermination((char)31);
+    // serialUltrasonic->Reset();
+    // #endif
+  */
 
   SD::PutNumber("HATCH_MID", elevatorHeights[HATCH_MID]);
   SD::PutNumber("HATCH_HIGH", elevatorHeights[HATCH_HIGH]);
@@ -44,12 +44,16 @@ void Robot::RobotInit() {
   compressor.SetClosedLoopControl(true);
 
   #if (!PNEUMATIC_OBJECT)
-    printf("set pneumatic default directions\n\n\nset pneumatic default directions\n\n\nset pneumatic default directions\n\n");
+    printf("\nsetting pneumatic default directions\n\n\nsetting pneumatic default directions\n\n\nset pneumatic default directions\n\n");
     SetPneumaticDefaultDirections();
   #endif
 
   TalonInit();
-  intakeMotor.SetInverted(false);
+  #if COMP_ROBOT
+    intakeMotor.SetInverted(false); // TODO_COMP
+  #else
+    intakeMotor.SetInverted(false);
+  #endif
 }
 
 /**
@@ -145,10 +149,10 @@ void Robot::AutonomousInit() {
     }
   }
 
-  leftEnc.Reset();
-  rightEnc.Reset();
-
-  ahrs->Reset();
+  // leftEnc.Reset();  \
+  // rightEnc.Reset(); | // TODO?
+  //                   | Are these necessary?
+  // ahrs->Reset();    /
 }
 
 void Robot::AutonomousPeriodic() {
@@ -160,7 +164,7 @@ void Robot::AutonomousPeriodic() {
     }
   }
 
-
+  TeleopPeriodic();
 }
 
 void Robot::TeleopInit() {}
@@ -813,6 +817,7 @@ void Robot::GetLimelight() {
 
   #if use_tolerance_scalar
     double P_align = 0.35 * toleranceScalar;
+    printf("using tolerance scalar\n");
   #else
     double P_align = 0.35;
   #endif
