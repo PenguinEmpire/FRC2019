@@ -384,6 +384,8 @@ class Robot : public frc::TimedRobot {
   void SetPneumaticDefaultDirections();
   void SensorInit();
   void UpdatePneumatics();
+  void CalibrateElevator();
+  void SetElevatorAtZero();
 
   // Utils:
   double calculateDampenedJoystick(double rawAxisValue);

@@ -523,37 +523,7 @@ void Robot::RunElevator() {
 
 
   if (elevatorState == CALIBRATING) {
-    #if ELEVATOR_SENSOR_EXIST
-      elevatorCalibratingLoopCount += 1;
-      // printf("in elevator calibrating\n"); 
-
-      if (elevatorCalibratingLoopCount < 400) {
-        if (!elevatorAtZero) {
-          if (masterLoopCount & 25 == 0) {
-          printf("in cali - not at zero\n");
-          }
-          // elevator.Set(ControlMode::Velocity, -0.0001);
-          elevator.Set(ControlMode::PercentOutput, ELEVATOR_DOWNSPEED);
-        } else {
-          printf("in cali - at zero\n");
-          elevator.Set(ControlMode::PercentOutput, 0.0);
-          // elevator.SetSelectedSensorPosition(0, 0, 10);
-          elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
-          elevator.SetSelectedSensorPosition(0, 0, 10);
-          elevatorState = NORMAL;
-        }
-      } else {
-        printf("in cali too long\n");
-        elevator.Set(ControlMode::PercentOutput, 0.0);
-      }
-    #else
-      printf("warning - assuming elevator at zero\n");
-      elevator.Set(ControlMode::PercentOutput, 0.0);
-      // elevator.SetSelectedSensorPosition(0, 0, 10);
-      elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
-      elevator.SetSelectedSensorPosition(0, 0, 10);
-      elevatorState = NORMAL;
-    #endif
+    CalibrateElevator();
   } else if (elevatorState == NORMAL) { //MANUAL, MECHANICAL_LOW, PICKUP, BALL_CARGO, HATCH_CARGO, HATCH_LOW, HATCH_MID, HATCH_HIGH, BALL_LOW, BALL_MID, BALL_HIGH
     int _pos;
     // printf("in elevator normal\n");
@@ -598,7 +568,7 @@ void Robot::RunElevator() {
         if (masterLoopCount % 50 == 0) {
           printf("setting to a preset\n");
         }
-/*      brute-force up or down at 0.6
+      /* brute-force up or down at 0.6
         if (curPos < elevatorHeights[elevatorDestination] - 100) {
           elevator.Set(ControlMode::PercentOutput, 0.6);
         } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
@@ -607,7 +577,7 @@ void Robot::RunElevator() {
           elevator.Set(ControlMode::PercentOutput, 0.0);
           elevatorDestination = MANUAL;
         }
-*/
+        */
         if (elevatorDestination == HATCH_LOW && elevatorAtZero) {
           elevator.Set(ControlMode::PercentOutput, 0.0);
         } else {
@@ -630,13 +600,13 @@ void Robot::RunElevator() {
     #endif
 
     #if DO_PRINTF
-      if (masterLoopCount % 15 == 0) {
+      // if (masterLoopCount % 15 == 0) {
         // double percentOutput = elevator.GetMotorOutputPercent();
         // double voltageOutput = elevator.GetMotorOutputVoltage();
         // if (percentOutput > 2 || voltageOutput != 0.0) {
         //   // printf("elevator output: %f percent, %f volts", percentOutput, voltageOutput);
         // }
-      }
+      // }
     #endif
   } 
 }
@@ -735,20 +705,18 @@ void Robot::ToggleSolenoid(frc::DoubleSolenoid& solenoid) {
 }
 
 void Robot::StopForwardMovement() {
-  #if (LIDAR_EXIST || ULTRA_EXIST)
+  #if (WALL_PROTECTION && (LIDAR_EXIST || ULTRA_EXIST))
     Robot::distances distSource;
     int minDist;
-  #endif
 
-  #if LIDAR_EXIST
-    distSource = lidarDist;
-    minDist = 8;
-  #elif ULTRA_EXIST
-    distSource = ultraDist;
-    minDist = 250;
-  #endif
+    #if LIDAR_EXIST
+      distSource = lidarDist;
+      minDist = 8;
+    #elif ULTRA_EXIST
+      distSource = ultraDist;
+      minDist = 250;
+    #endif
 
-  #if (WALL_PROTECTION && (LIDAR_EXIST || ULTRA_EXIST))
     if (distSource.left < minDist || distSource.right < minDist) {
       l1.ConfigPeakOutputForward(0.0);
       r1.ConfigPeakOutputForward(0.0);
@@ -808,31 +776,31 @@ void Robot::GetLimelight() {
    */
   //
 
-/* copied from them
-  float KpAim = -0.1f;
-  float KpDistance = -0.1f;
-  float min_aim_command = 0.05f;
+  /* copied from them
+    float KpAim = -0.1f;
+    float KpDistance = -0.1f;
+    float min_aim_command = 0.05f;
 
-  float tx = limelight->GetNumber("tx", 0.0);
-  float ty = limelight->GetNumber("ty", 0.0);
+    float tx = limelight->GetNumber("tx", 0.0);
+    float ty = limelight->GetNumber("ty", 0.0);
 
-  float heading_error  = -tx;
-  float distance_error = -ty;
-  float steering_adjust = 0.0f;
+    float heading_error  = -tx;
+    float distance_error = -ty;
+    float steering_adjust = 0.0f;
 
-  if (tx > 1.0) {
-    steering_adjust = KpAim * heading_error - min_aim_command;
-  } else if (tx < 1.0) {
-    steering_adjust = KpAim * heading_error + min_aim_command;
-  }
+    if (tx > 1.0) {
+      steering_adjust = KpAim * heading_error - min_aim_command;
+    } else if (tx < 1.0) {
+      steering_adjust = KpAim * heading_error + min_aim_command;
+    }
 
-  float distance_adjust = KpDistance * distance_error;
+    float distance_adjust = KpDistance * distance_error;
 
-  left_command  += steering_adjust + distance_adjust;
-  right_command -= steering_adjust + distance_adjust;
-  SD::PutNumber("left_command", left_command);
-  SD::PutNumber("right_command", right_command);
-*/
+    left_command  += steering_adjust + distance_adjust;
+    right_command -= steering_adjust + distance_adjust;
+    SD::PutNumber("left_command", left_command);
+    SD::PutNumber("right_command", right_command);
+  */
 
   float tx = limelight->GetNumber("tx", 0.0);
   float ty = limelight->GetNumber("ty", 0.0);
@@ -1021,7 +989,6 @@ double Robot::linearMap(double n, double start1, double stop1, double start2, do
   /* double newval = */ return (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
 }
 
-
 void Robot::Testing() {
   // bool gotTopButton = leftJoystick.GetTop(); 
   // bool gotTriggerButton = leftJoystick.GetTrigger();
@@ -1042,6 +1009,7 @@ void Robot::Testing() {
     SD::PutBoolean("dio elevator", elevatorZero->Get());
   #endif
     SD::PutBoolean("elevatorAtZero", elevatorAtZero);
+    SD::PutBoolean("elevator sensor exist", ELEVATOR_SENSOR_EXIST);
 
   // SD::PutNumber("lineSensorLeft", lineSensorLeft->GetValue());
   // SD::PutNumber("lineSensorMid", lineSensorMid->GetValue());
@@ -1131,6 +1099,40 @@ void Robot::UpdatePneumatics() {
     //   printf("ballPusher busy\n");
     // } else {printf("ballPusher not busy\n");}
   #endif
+}
+
+void Robot::CalibrateElevator() {
+  #if ELEVATOR_SENSOR_EXIST
+    elevatorCalibratingLoopCount += 1;
+    // printf("in elevator calibrating\n"); 
+
+    if (elevatorCalibratingLoopCount < 400) {
+      if (!elevatorAtZero) {
+        if (masterLoopCount & 25 == 0) {
+          printf("in cali - not at zero\n");
+        }
+        // elevator.Set(ControlMode::Velocity, -0.0001);
+        elevator.Set(ControlMode::PercentOutput, ELEVATOR_DOWNSPEED);
+      } else {
+        printf("in cali - at zero\n");
+        SetElevatorAtZero();
+      }
+    } else {
+      printf("in cali too long - restart robot or robot code to gain control of elevator\n");
+      elevator.Set(ControlMode::PercentOutput, 0.0);
+    }
+  #else
+    printf("warning - assuming elevator at zero\n");
+    SetElevatorAtZero();
+  #endif
+}
+
+void Robot::SetElevatorAtZero() {
+  elevator.Set(ControlMode::PercentOutput, 0.0);
+  // elevator.SetSelectedSensorPosition(0, 0, 10);
+  elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
+  elevator.SetSelectedSensorPosition(0, 0, 10);
+  elevatorState = NORMAL;
 }
 
 #ifndef RUNNING_FRC_TESTS
