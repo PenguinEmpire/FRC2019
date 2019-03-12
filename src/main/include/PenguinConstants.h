@@ -48,7 +48,7 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
 
-#define COMP_ROBOT                false
+#define COMP_ROBOT                false // CHECK!
 #define PRACTICE_TALON            true
 #define LIDAR_EXIST               true 
 #define ULTRA_EXIST               false
@@ -56,14 +56,17 @@ constexpr float PULSE_IN = 0.16;
 #define ELEVATOR_SENSOR_EXIST     false
 #define PNEUMATIC_OBJECT          false
 
-#define DO_PRINTF                 true
+#define DO_PRINTF                 true  // false in comp, prob
 #define PROFILING                 false
-#define DO_EXTRA_IO               false
+#define DO_IO                     true
+#define DO_EXTRA_IO               true  // also prob false
 
 #define OPEN_LOOP_RAMP            false
+#define LIMELIGHT_APPROACH        true
 
 #define WALL_PROTECTION           false // probably don't change
 #define ELEVATOR_DOWN_PROTECTION  true
+#define COVER_LAST_DIST_APPROACH  false
 
 // COMP ROBOT VALUES
 

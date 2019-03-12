@@ -265,7 +265,7 @@ void Robot::TalonInit() {
   elevator.ConfigClosedloopRamp(0.02);
 
   elevator.Config_kP(0, 6.0, 10);
-  elevator.Config_kF(0, 0.25, 10);
+  elevator.Config_kF(0, ELEVATOR_FEEDFORWARD, 10);
   elevator.Config_kD(0, 80, 10);
 
 
@@ -420,21 +420,19 @@ void Robot::HandleJoysticks() {
   if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
     #if ULTRA_EXIST
       Align(DistanceType::ULTRASONIC);
-      SD::PutBoolean("appr-ultrasonic", true);
     #else
       printf("ultra align not possible: line %i\n", __LINE__);
     #endif
   } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
     #if LIDAR_EXIST
       Align(DistanceType::LIDAR);
-      SD::PutBoolean("appr-lidar", true);
     #else
       printf("lidar align not possible: line %i\n", __LINE__);
     #endif
   } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
-    #if LIMELIGHT_EXIST
-      DriveLeft ( left_command * 0.7);
-      DriveRight(right_command * 0.7);
+    #if (LIMELIGHT_EXIST && LIMELIGHT_APPROACH)
+      DriveLeft ( left_command);
+      DriveRight(right_command);
     #else
       printf("limelight align/approach not allowed: line %i\n", __LINE__);
     #endif
@@ -446,9 +444,6 @@ void Robot::HandleJoysticks() {
       l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
       r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
     #endif
-
-    SD::PutBoolean("appr-ultrasonic", false);
-    SD::PutBoolean("appr-lidar", false);
 
     // Joystick Inputs for driving
     if(fabs(left - right) < 0.1 /* rightJoystick.GetRawAxis(3) */ ) { // !!!!!! - TODO?
@@ -811,26 +806,44 @@ void Robot::GetLimelight() {
 
   ty -= 2.5; // TODO: stronger?
 
-  // P_align = 0.350 works well // TODO
-
   #define use_tolerance_scalar false
 
   #if use_tolerance_scalar
-    double P_align = 0.35 * toleranceScalar;
-    printf("using tolerance scalar\n");
+    double P_align = 0.45 * toleranceScalar;
+    printf("using tolerance scalar : p = %f\n", P_align);
   #else
-    double P_align = 0.35;
+    double P_align = 0.4; // P_align = 0.35-.45 works well // TODO
   #endif
   
   left_command  = -(-(P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
   right_command = -( (P_align)/* 0.1 */ * tx + (0.2 * (ty + 0.1)));
 
   left_command  /= 6.0;
-  right_command /= 6.0; 
+  right_command /= 6.0;
 
-  SD::PutNumber("left_command", left_command);
-  SD::PutNumber("right_command", right_command);
-  SD::PutNumber("P_align", P_align);
+  left_command  *= 0.7;
+  right_command *= 0.7;
+
+  #define slow_speed 0.1
+
+  #if (COVER_LAST_DIST_APPROACH && LIDAR_EXIST) // (LIDAR_EXIST || ULTRA_EXIST))
+    if ((fabs(left_command) < slow_speed) && (fabs(right_command) < slow_speed)) {
+      if (lidarDist.gt(10)) {
+        left_command = 0.25;
+        right_command = 0.25;
+      } else {
+        left_command = 0.0;
+        right_command = 0.0;
+      }
+    }  
+  #endif
+
+  #if DO_IO
+    SD::PutNumber("left_command", left_command);
+    SD::PutNumber("right_command", right_command);
+    SD::PutNumber("P_align", P_align);
+  #endif
+
   #endif
 }  
 

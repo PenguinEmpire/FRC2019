@@ -123,7 +123,7 @@ class Robot : public frc::TimedRobot {
   */ 
 
   enum LimelightApproachState {
-    APPROACHING, CLOSE, AT, TOO_FAR
+    APPROACHING, CLOSE, AT, TOO_FAR  
   };
 
 	unordered_map<Robot::LimelightApproachState, std::string> limelightApproachStateNames = {
@@ -272,6 +272,18 @@ class Robot : public frc::TimedRobot {
     double total;
     double average() {
       return (left + right) / 2.0;
+    }
+    bool gt(double val) {
+      return left > val && right > val;
+    }
+    bool lt(double val) {
+      return left < val && right < val;
+    }
+    bool gt_or(double val) {
+      return left > val || right > val;
+    }
+    bool lt_or(double val) {
+      return left < val || right < val;
     }
   } ultraDist, lidarDist, limelightDist;
 
