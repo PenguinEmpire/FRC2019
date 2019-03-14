@@ -156,7 +156,7 @@ void Robot::AutonomousInit() {
 }
 
 void Robot::AutonomousPeriodic() {
-  { // Built in auto code
+  { // Auto-generated auto code
     if (m_autoSelected == kAutoNameCustom) {
       // Custom Auto goes here
     } else {
