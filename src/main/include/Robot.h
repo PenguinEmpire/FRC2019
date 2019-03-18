@@ -155,14 +155,14 @@ class Robot : public frc::TimedRobot {
       // {HOLD,            1 /* placeholder!!!! */},
 
       #if COMP_ROBOT
-        {HATCH_LOW,  -1000}, // TODO : surely 0?
-        {HATCH_MID,   9761}, 
+        {HATCH_LOW,  10}, 
+        {HATCH_MID,   10500}, 
         {HATCH_HIGH,  20000}, 
-        {BALL_LOW,    4100 }, // TODO_COMP
-        {BALL_MID,    16800}, // TODO_COMP
-        {BALL_HIGH,   28550},  // TODO_COMP
+        {BALL_LOW,    3900 /*4300*/ }, // actually 4700?. levels at err ~= -150 and seems resistant to lowering when I change this. ??.
+        {BALL_MID,    /*14300*/ 14700 - 400}, 
+        {BALL_HIGH,   23000}, 
 
-        {BALL_CARGO,  12000 /* placeholder!!!! TODO */ },
+        {BALL_CARGO,  9601},
       #else
         #if (!ELEVATOR_SENSOR_EXIST)
         {HATCH_LOW,       0}, // TODO : surely 0?
@@ -328,7 +328,7 @@ class Robot : public frc::TimedRobot {
     #else
       frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
       frc::DoubleSolenoid intakeArm{     pcm0, pch6, pch7};
-      frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
+      // frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
       frc::DoubleSolenoid hatchPusher{   pcm0, pch4, pch5};
       frc::DoubleSolenoid jumper{           1,    0,    1};
     #endif
@@ -363,6 +363,7 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override;
+  // void DisabledInit() override;
   void DisabledPeriodic() override;
 
   void TalonInit();

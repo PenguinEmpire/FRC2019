@@ -117,8 +117,6 @@ void Robot::RobotPeriodic() { // runs after mode specific
 
   masterLoopCount += 1;
 
-  // printf("\n");
-
   #if PROFILING
   printf("TeleopPeriodic took : %f\n", now - start_now);
   #endif
@@ -219,6 +217,10 @@ void Robot::TeleopPeriodic() {
 }
 
 void Robot::TestPeriodic() {}
+
+// void Robot::DisabledInit() {
+//   jumper.Set(frc::DoubleSolenoid::kForward);
+// }
 
 void Robot::DisabledPeriodic() {
   rightJoystick.GetRawButtonPressed(1);
@@ -421,23 +423,31 @@ void Robot::HandleJoysticks() {
     #if ULTRA_EXIST
       Align(DistanceType::ULTRASONIC);
     #else
-      printf("ultra align not possible: line %i\n", __LINE__);
+      #if DO_PRINTF
+        printf("ultra align not possible: line %i\n", __LINE__);
+      #endif
     #endif
   } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
     #if LIDAR_EXIST
       Align(DistanceType::LIDAR);
     #else
-      printf("lidar align not possible: line %i\n", __LINE__);
+      #if DO_PRINTF
+        printf("lidar align not possible: line %i\n", __LINE__);
+      #endif
     #endif
   } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
     #if (LIMELIGHT_EXIST && LIMELIGHT_APPROACH)
       DriveLeft ( left_command);
       DriveRight(right_command);
     #else
-      printf("limelight align/approach not allowed: line %i\n", __LINE__);
+      #if DO_PRINTF
+        printf("limelight align/approach not allowed: line %i\n", __LINE__);
+      #endif
     #endif
   } else if (leftJoystick.GetRawButton(6)) {
-    printf("calling align(navx)\n");
+    #if DO_PRINTF
+      printf("calling align(navx)\n");
+    #endif
     Align(DistanceType::NAVX);
   } else { // manual driving
     #if ((COMP_ROBOT || PRACTICE_TALON) && OPEN_LOOP_RAMP)
@@ -455,7 +465,7 @@ void Robot::HandleJoysticks() {
     }
   }
 
-  #if PNEUMATIC_OBJECT 
+  #if PNEUMATIC_OBJECT // controls prob not correct
     driveGearboxes.ToggleOverride(rightJoystick.GetRawButtonPressed(2));;
     intakeArm.ToggleOverride(rightJoystick.GetRawButtonPressed(3));
     ballPusher.ToggleOverride(rightJoystick.GetRawButtonPressed(6));
@@ -469,17 +479,19 @@ void Robot::HandleJoysticks() {
     #endif
   #else // TODO??
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-    ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), ballPusher);
+    // ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), ballPusher);
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
     #if COMP_ROBOT
-      ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), hatchPusher);
+      ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
       ToggleSolenoid(rightJoystick.GetRawButtonPressed(6), jumper);
     #endif
   #endif
 
-  if (rightJoystick.GetRawButtonPressed(1)) {
-    ahrs->Reset();
-  }
+  #if ALLOW_CALIBRATE_NAVX
+    if (rightJoystick.GetRawButtonPressed(1)) {
+      ahrs->Reset();
+    }
+  #endif
 
   ChooseElevatorMode();
   ChooseAlignMode();
@@ -564,18 +576,20 @@ void Robot::RunElevator() {
       case HATCH_LOW:
       case BALL_MID:
       case BALL_HIGH:
-        if (masterLoopCount % 50 == 0) {
-          printf("setting to a preset\n");
-        }
-      /* brute-force up or down at 0.6
-        if (curPos < elevatorHeights[elevatorDestination] - 100) {
-          elevator.Set(ControlMode::PercentOutput, 0.6);
-        } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
-          elevator.Set(ControlMode::PercentOutput, -0.6);
-        } else {
-          elevator.Set(ControlMode::PercentOutput, 0.0);
-          elevatorDestination = MANUAL;
-        }
+        #if (DO_PRINTF || DO_DIAGNOSTIC)
+          if (masterLoopCount % 50 == 0) {
+            printf("setting to a preset\n");
+          }
+        #endif
+        /* brute-force up or down at 0.6
+          if (curPos < elevatorHeights[elevatorDestination] - 100) {
+            elevator.Set(ControlMode::PercentOutput, 0.6);
+          } else if (curPos > elevatorHeights[elevatorDestination] + 100) {
+            elevator.Set(ControlMode::PercentOutput, -0.6);
+          } else {
+            elevator.Set(ControlMode::PercentOutput, 0.0);
+            elevatorDestination = MANUAL;
+          }
         */
         if (elevatorDestination == HATCH_LOW && elevatorAtZero) {
           elevator.Set(ControlMode::PercentOutput, 0.0);
@@ -810,7 +824,9 @@ void Robot::GetLimelight() {
 
   #if use_tolerance_scalar
     double P_align = 0.45 * toleranceScalar;
-    printf("using tolerance scalar : p = %f\n", P_align);
+    #if DO_DIAGNOSTIC
+      printf("using tolerance scalar : p = %f\n", P_align);
+    #endif
   #else
     double P_align = 0.4; // P_align = 0.35-.45 works well // TODO
   #endif
@@ -838,7 +854,7 @@ void Robot::GetLimelight() {
     }  
   #endif
 
-  #if DO_IO
+  #if DO_DIAGNOSTIC
     SD::PutNumber("left_command", left_command);
     SD::PutNumber("right_command", right_command);
     SD::PutNumber("P_align", P_align);
@@ -882,9 +898,13 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
 }
 
 void Robot::Align(Robot::DistanceType type) {
-  if (masterLoopCount % 20 == 0) {
-    printf("in align : type %s\n", distanceTypeNames[type].c_str());
-  }
+  #if DO_DIAGNOSTIC
+    if (masterLoopCount % 20 == 0) {
+      // printf("in align : type %s\n", distanceTypeNames[type].c_str());
+      std::cout << "in align : type" << distanceTypeNames[type] << "\n";
+    }
+  #endif
+
   // double kP = 1.0;
   // double kI = 0.0;
   // double kD = 0.0;
@@ -899,9 +919,11 @@ void Robot::Align(Robot::DistanceType type) {
       right = lidarDist.right;
       tolerance = 80 * toleranceScalar;
     #else
-      if (masterLoopCount % 20 == 0) {
-        printf("no lidar - can't lidar align (line %i)\n", __LINE__);
-      }
+      #if DO_DIAGNOSTIC
+        if (masterLoopCount % 20 == 0) {
+          printf("no lidar - can't lidar align (line %i)\n", __LINE__);
+        }
+      #endif
     #endif
   } else if (type == ULTRASONIC) {
     #if ULTRA_EXIST
@@ -909,9 +931,11 @@ void Robot::Align(Robot::DistanceType type) {
       right = ultraDist.right;
       tolerance = 240 * toleranceScalar;
     #else
-      if (masterLoopCount % 20 == 0) {
-        printf("no ultra - can't ultra align (line %i)\n", __LINE__);
-      }
+      #if DO_DIAGNOSTIC
+        if (masterLoopCount % 20 == 0) {
+          printf("no ultra - can't ultra align (line %i)\n", __LINE__);
+        }
+      #endif
     #endif
   }
 
@@ -960,7 +984,7 @@ void Robot::Align(Robot::DistanceType type) {
       printf("turning right to %f\n", target);
       TurnRight(speed);
     } else if (target + alignTol < deg) {
-      printf("turning left to %f\n", target);
+      printf("turning left to %f\n", target); 
       TurnLeft(speed);
     // } 
     // else if (0 < deg && deg < 85) {
@@ -971,7 +995,7 @@ void Robot::Align(Robot::DistanceType type) {
     //   TurnLeft(speed);
     } else {
       DriveBoth(0.0);
-      printf("what?? (aligned?)\n");
+      printf("aligned\n");
     }
   }
 
@@ -980,7 +1004,6 @@ void Robot::Align(Robot::DistanceType type) {
   SD::PutNumber("dis| dif", dif);
 
   if ((type == LIDAR && LIDAR_EXIST) || (type == ULTRASONIC && ULTRA_EXIST)) {
-    printf("actual align\n");
     if (fabs(dif) > tolerance) {
       DriveLeft (-go);
       DriveRight( go);
@@ -1069,10 +1092,10 @@ void Robot::Testing() {
 void Robot::SetPneumaticDefaultDirections() {
   #if (!PNEUMATIC_OBJECT)
     #if COMP_ROBOT
-      ShiftGears(Direction::down, driveGearboxes); // TODO_COMP: remove?
-      driveGearboxes.Set(frc::DoubleSolenoid::kReverse);
+      // ShiftGears(Direction::down, driveGearboxes); // TODO_COMP: remove?
+      driveGearboxes.Set(frc::DoubleSolenoid::kForward);
       intakeArm.Set(frc::DoubleSolenoid::kReverse);
-      ballPusher.Set(frc::DoubleSolenoid::kReverse);
+      // ballPusher.Set(frc::DoubleSolenoid::kReverse);
       hatchPusher.Set(frc::DoubleSolenoid::kForward);
       jumper.Set(frc::DoubleSolenoid::kForward);
     #else // TODO
