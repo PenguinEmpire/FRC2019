@@ -1,0 +1,11 @@
+In DisabledPeriodic:
+r 1, 2-6
+b 1-12
+g 1 4 6
+l 2
+
+In Robot Code:
+r 2,3,6,5,4, 1
+l 2
+b 7-11, 12, 1-6
+g 1, 4, 6
