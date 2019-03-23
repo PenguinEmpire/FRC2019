@@ -16,6 +16,8 @@
   "files.associations": {
     "*.inc": "cpp",
     "string": "cpp",
-    "unordered_map": "cpp"
+    "unordered_map": "cpp",
+    "cmath": "cpp",
+    "complex": "cpp"
   }
 }

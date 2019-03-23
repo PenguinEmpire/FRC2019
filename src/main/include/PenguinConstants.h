@@ -63,6 +63,8 @@ constexpr float PULSE_IN = 0.16;
 #define DO_EXTRA_IO               false  // also prob false
 #define ALLOW_CALIBRATE_NAVX      false
 
+#define DO_RUMBLE                 false
+
 #define OPEN_LOOP_RAMP            false
 #define LIMELIGHT_APPROACH        true
 #define COVER_LAST_DIST_APPROACH  false

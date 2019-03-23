@@ -877,6 +877,28 @@ void Robot::GetLimelight() {
   float tx = limelight->GetNumber("tx", 0.0);
   float ty = limelight->GetNumber("ty", 0.0);
 
+  #if DO_RUMBLE // Trying to set rumble on gamerJoystick, doesn't work
+    if (tx < 0) {
+      gamerJoystick.SetRumble(frc::Joystick::kLeftRumble, fabs(tx) / 30.);
+      gamerJoystick.SetRumble(frc::Joystick::kRightRumble, 0.);
+      #if (DO_PRINTF || DO_DIAGNOSTIC)
+        printf("setting left rumble to %f\n", fabs(tx) / 30.);
+      #endif
+    } else if (tx > 0) {
+      gamerJoystick.SetRumble(frc::Joystick::kRightRumble, tx / 30.);
+      gamerJoystick.SetRumble(frc::Joystick::kLeftRumble, 0.);
+      #if (DO_PRINTF || DO_DIAGNOSTIC)
+        printf("setting right rumble to %f\n", tx);
+      #endif    
+    } else {
+      gamerJoystick.SetRumble(frc::Joystick::kRightRumble, 0.);
+      gamerJoystick.SetRumble(frc::Joystick::kLeftRumble,  0.);
+      #if (DO_PRINTF || DO_DIAGNOSTIC)
+        printf("setting both rumble to 0\n");
+      #endif
+    }
+  #endif  
+
   ty -= 2.5; // TODO: stronger?
 
   #define use_tolerance_scalar false
