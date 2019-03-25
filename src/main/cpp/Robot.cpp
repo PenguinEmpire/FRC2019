@@ -879,8 +879,8 @@ void Robot::GetLimelight() {
 
   #if DO_RUMBLE // Trying to set rumble on gamerJoystick, doesn't work
     if (tx < 0) {
-      gamerJoystick.SetRumble(frc::Joystick::kLeftRumble, fabs(tx) / 30.);
-      gamerJoystick.SetRumble(frc::Joystick::kRightRumble, 0.);
+      gamerJoystick.SetRumble(frc::GenericHID::kLeftRumble, fabs(tx) / 30.);
+      gamerJoystick.SetRumble(frc::GenericHID::kRightRumble, 0.);
       #if (DO_PRINTF || DO_DIAGNOSTIC)
         printf("setting left rumble to %f\n", fabs(tx) / 30.);
       #endif
