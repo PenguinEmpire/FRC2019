@@ -38,10 +38,20 @@ void Robot::RobotInit() {
   printf("robot init test\n");
 
   SensorInit();
+  ahrs->Reset();
+
   timer->Reset();
   timer->Start();
 
   compressor.SetClosedLoopControl(true);
+
+  #if (!NAVX_BANGBANG)
+    turnController->SetInputRange(-180.0f,  180.0f);
+    turnController->SetOutputRange(-1.0, 1.0);
+    turnController->SetAbsoluteTolerance(kToleranceDegrees);
+    turnController->SetContinuous(true);
+    turnController->Disable();
+  #endif
 
   #if (!PNEUMATIC_OBJECT)
     printf("\nsetting pneumatic default directions\n\n\nsetting pneumatic default directions\n\n\nset pneumatic default directions\n\n");
@@ -66,28 +76,30 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() { // runs after mode specific
   #if PROFILING
-  now = timer->Get();
-  prev_now = now;
-  start_now = now;
-  printf("Starting RobotPeriodic : %f\n", now);
+    now = timer->Get();
+    prev_now = now;
+    start_now = now;
+    printf("Starting RobotPeriodic : %f\n", now);
   #endif
 
-  Testing();
+  #if (DO_DIAGNOSTIC || DO_PRINTF)
+    Testing();
+  #endif
 
   #if PROFILING
-  now = timer->Get();
-  // printf("Ran Testing : %f", now);
-  printf("Running Testing took : %f\n", now - prev_now);
-  prev_now = now;
+    now = timer->Get();
+    // printf("Ran Testing : %f", now);
+    printf("Running Testing took : %f\n", now - prev_now);
+    prev_now = now;
   #endif
 
   GetDistances();
 
   #if PROFILING
-  now = timer->Get();
-  // printf("Got distances : %f", now);
-  printf("Getting distances took : %f\n", now - prev_now);
-  prev_now = now;
+    now = timer->Get();
+    // printf("Got distances : %f", now);
+    printf("Getting distances took : %f\n", now - prev_now);
+    prev_now = now;
   #endif
 
   #if ELEVATOR_SENSOR_EXIST
@@ -103,7 +115,6 @@ void Robot::RobotPeriodic() { // runs after mode specific
     prev_now = now;
   #endif
 
-
   #if PNEUMATIC_OBJECT
     UpdatePneumatics();
 
@@ -117,12 +128,14 @@ void Robot::RobotPeriodic() { // runs after mode specific
 
   masterLoopCount += 1;
 
+  SetLimelightLEDs(limelightLEDsOn);
+
   #if PROFILING
-  printf("TeleopPeriodic took : %f\n", now - start_now);
+    printf("TeleopPeriodic took : %f\n", now - start_now);
   #endif
 }
 
-/**
+/** Autogen info on AutonomousInit
  * This autonomous (along with the chooser code above) shows how to select
  * between different autonomous modes using the dashboard. The sendable chooser
  * code works with the Java SmartDashboard. If you prefer the LabVIEW Dashboard,
@@ -134,7 +147,7 @@ void Robot::RobotPeriodic() { // runs after mode specific
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-  { // Built-in auto code
+  { // Auto-generated auto code
     m_autoSelected = m_chooser.GetSelected();
     // m_autoSelected = SmartDashboard::GetString("Auto Selector",
     //     kAutoNameDefault);
@@ -147,10 +160,14 @@ void Robot::AutonomousInit() {
     }
   }
 
-  // leftEnc.Reset();  \
-  // rightEnc.Reset(); | // TODO?
-  //                   | Are these necessary?
-  // ahrs->Reset();    /
+  limelightLEDsOn = true;
+
+  /* Reseting encoders and navX
+    // leftEnc.Reset();  \
+    // rightEnc.Reset(); | // TODO?
+    //                   | Are these necessary?
+    // ahrs->Reset();    /
+  */
 }
 
 void Robot::AutonomousPeriodic() {
@@ -165,64 +182,69 @@ void Robot::AutonomousPeriodic() {
   TeleopPeriodic();
 }
 
-void Robot::TeleopInit() {}
+void Robot::TeleopInit() {
+  limelightLEDsOn = true;
+}
  
 void Robot::TeleopPeriodic() {
   #if PROFILING
-  now = timer->Get();
-  prev_now = now;
-  start_now = now;
-  printf("Starting TeleopPeriodic : %f\n", now);
+    now = timer->Get();
+    prev_now = now;
+    start_now = now;
+    printf("Starting TeleopPeriodic : %f\n", now);
   #endif
 
   HandleJoysticks();
 
   #if PROFILING
-  now = timer->Get();
-  // printf("Handled joysticks : %f", now);
-  printf("Handling joysticks took : %f\n", now - prev_now);
-  prev_now = now;
+    now = timer->Get();
+    // printf("Handled joysticks : %f", now);
+    printf("Handling joysticks took : %f\n", now - prev_now);
+    prev_now = now;
   #endif
   
   RunElevator();
 
   #if PROFILING
-  now = timer->Get();
-  // printf("Ran elevator : %f", now);
-  printf("Running elevator took : %f\n", now - prev_now);
-  prev_now = now;
+    now = timer->Get();
+    // printf("Ran elevator : %f", now);
+    printf("Running elevator took : %f\n", now - prev_now);
+    prev_now = now;
   #endif
 
   intakeMotor.Set(gamerJoystick.GetRawAxis(1));
 
   #if PROFILING
-  now = timer->Get();
-  // printf("Set intake motor : %f", now);
-  printf("Setting intake motor took : %f\n", now - prev_now);
-  prev_now = now;
+    now = timer->Get();
+    // printf("Set intake motor : %f", now);
+    printf("Setting intake motor took : %f\n", now - prev_now);
+    prev_now = now;
   #endif
 
-  #if (LIDAR_EXIST || ULTRA_EXIST)
+  #if (WALL_PROTECTION && (LIDAR_EXIST || ULTRA_EXIST))
     StopForwardMovement();
   #endif
 
   #if PROFILING
-  now = timer->Get();
-  // printf("Stopped forward movement? : %f", now);
-  printf("Stopping forward movement took : %f\n", now - prev_now);
-  prev_now = now;
+    now = timer->Get();
+    // printf("Stopped forward movement? : %f", now);
+    printf("Stopping forward movement took : %f\n", now - prev_now);
+    prev_now = now;
 
-  printf("TeleopPeriodic took : %f\n\n", now - start_now);
+    printf("TeleopPeriodic took : %f\n\n", now - start_now);
   #endif
 }
 
 void Robot::TestPeriodic() {}
 
-// void Robot::DisabledInit() {
-//   jumper.Set(frc::DoubleSolenoid::kForward);
-// }
+void Robot::DisabledInit() {
+  // jumper.Set(frc::DoubleSolenoid::kForward);
+  limelightLEDsOn = false;
+}
 
 void Robot::DisabledPeriodic() {
+  limelightLEDsOn = false;
+
   rightJoystick.GetRawButtonPressed(1);
 
   rightJoystick.GetRawButtonPressed(2);
@@ -327,7 +349,6 @@ void Robot::TalonInit() {
   elevator.ConfigPeakOutputReverse(-1.0);
   elevator.ConfigPeakOutputForward(1.0);
 
-
   elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Absolute, 0, 0);
 }
 
@@ -419,37 +440,64 @@ void Robot::HandleJoysticks() {
     r1.ConfigOpenloopRamp(0.0);
   #endif
 
-  if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
-    #if ULTRA_EXIST
-      Align(DistanceType::ULTRASONIC);
-    #else
-      #if DO_PRINTF
-        printf("ultra align not possible: line %i\n", __LINE__);
+
+  #if (!FANCY_NAVX)
+    if (leftJoystick.GetRawButton(3)) { // align w/ ultrasonic
+      #if ULTRA_EXIST
+        Align(DistanceType::ULTRASONIC);
+      #else
+        #if DO_PRINTF
+          printf("ultra align not possible: line %i\n", __LINE__);
+        #endif
       #endif
-    #endif
-  } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
-    #if LIDAR_EXIST
-      Align(DistanceType::LIDAR);
-    #else
-      #if DO_PRINTF
-        printf("lidar align not possible: line %i\n", __LINE__);
+    } else if (leftJoystick.GetRawButton(4)) { // align w/ lidar
+      #if LIDAR_EXIST
+        Align(DistanceType::LIDAR);
+      #else
+        #if DO_PRINTF
+          printf("lidar align not possible: line %i\n", __LINE__);
+        #endif
       #endif
-    #endif
-  } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
-    #if (LIMELIGHT_EXIST && LIMELIGHT_APPROACH)
-      DriveLeft ( left_command);
-      DriveRight(right_command);
-    #else
-      #if DO_PRINTF
-        printf("limelight align/approach not allowed: line %i\n", __LINE__);
+    } else if (leftJoystick.GetRawButton(5)) { // approach & align (?) w/ limelight
+      #if (LIMELIGHT_EXIST && LIMELIGHT_APPROACH)
+        DriveLeft ( left_command);
+        DriveRight(right_command);
+      #else
+        #if DO_PRINTF
+          printf("limelight align/approach not allowed: line %i\n", __LINE__);
+        #endif
       #endif
-    #endif
-  } else if (leftJoystick.GetRawButton(6)) {
-    #if DO_PRINTF
-      printf("calling align(navx)\n");
-    #endif
-    Align(DistanceType::NAVX);
+    } else if (leftJoystick.GetRawButton(6)) {
+      #if DO_PRINTF
+        printf("calling align(navx)\n");
+      #endif
+      Align(DistanceType::NAVX);
+  #else
+    if (rightJoystick.GetRawButton(1)) { // approach & align (?) w/ limelight
+      #if (LIMELIGHT_EXIST && LIMELIGHT_APPROACH)
+        DriveLeft ( left_command);
+        DriveRight(right_command);
+      #else
+        #if DO_PRINTF
+          printf("limelight align/approach not allowed: line %i\n", __LINE__);
+        #endif
+      #endif
+    } else if (leftJoystick.GetRawButton(5)) {
+      Align(DistanceType::NAVX, 0.);
+    } else if (leftJoystick.GetRawButton(3)) {
+      Align(DistanceType::NAVX, -90.);
+    } else if (leftJoystick.GetRawButton(6)) {
+      Align(DistanceType::NAVX, 90.);
+    } else if (leftJoystick.GetRawButton(4)) {
+      Align(DistanceType::NAVX, 179.9);
+  #endif
   } else { // manual driving
+    #if (!NAVX_BANGBANG)
+      if (turnController->IsEnabled()) {
+        turnController->Disable();
+      }
+    #endif
+
     #if ((COMP_ROBOT || PRACTICE_TALON) && OPEN_LOOP_RAMP)
       l1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
       r1.ConfigOpenloopRamp(DRIVE_OPENLOOP_RAMP, 10);
@@ -487,8 +535,19 @@ void Robot::HandleJoysticks() {
     #endif
   #endif
 
+  // Toggle Limelight mode
+  if (gamerJoystick.GetRawButtonPressed(8)) {
+    if (limelight->GetNumber("camMode", 1) == 1) { // default is Driver mode so that it'll set to vision mode
+      limelight->PutNumber("camMode", 0); // Set to vision
+      limelightLEDsOn = true;
+    } else {
+      limelight->PutNumber("camMode", 1); // Set to driver
+      limelightLEDsOn = false;
+    }
+  }
+
   #if ALLOW_CALIBRATE_NAVX
-    if (rightJoystick.GetRawButtonPressed(1)) {
+    if (gamerJoystick.GetRawButtonPressed(5)) {
       ahrs->Reset();
     }
   #endif
@@ -496,6 +555,7 @@ void Robot::HandleJoysticks() {
   ChooseElevatorMode();
   ChooseAlignMode();
 
+  // Inverting drive
   if (leftJoystick.GetRawButtonPressed(2)) {
     #if (COMP_ROBOT || PRACTICE_TALON)
       l1.SetInverted(!l1.GetInverted());
@@ -531,7 +591,6 @@ void Robot::RunElevator() {
   } else {
     SD::PutString("talon's target", "N/A");
   }
-
 
   if (elevatorState == CALIBRATING) {
     CalibrateElevator();
@@ -760,15 +819,15 @@ void Robot::GetDistances() {
   // int gotValueR = analogUltrasonicR->GetValue();
   // int gotValueL = analogUltrasonicL->GetValue();
   
-/* serial ultrasonic class
-  // int bytesReceived = serialUltrasonic->GetBytesReceived();
-  // char buffer[bytesReceived];
-  // int readBytes = serialUltrasonic->Read(buffer, bytesReceived);
+  /* serial ultrasonic class
+    // int bytesReceived = serialUltrasonic->GetBytesReceived();
+    // char buffer[bytesReceived];
+    // int readBytes = serialUltrasonic->Read(buffer, bytesReceived);
 
-  // SD::PutNumber("bytesReceived", bytesReceived);
-  // SD::PutRaw("buffer", buffer);
-  // SD::PutNumber("readBytes", readBytes);
-*/
+    // SD::PutNumber("bytesReceived", bytesReceived);
+    // SD::PutRaw("buffer", buffer);
+    // SD::PutNumber("readBytes", readBytes);
+  */
 }
 
 void Robot::GetLimelight() {
@@ -817,6 +876,28 @@ void Robot::GetLimelight() {
 
   float tx = limelight->GetNumber("tx", 0.0);
   float ty = limelight->GetNumber("ty", 0.0);
+
+  #if DO_RUMBLE // Trying to set rumble on gamerJoystick, doesn't work
+    if (tx < 0) {
+      gamerJoystick.SetRumble(frc::GenericHID::kLeftRumble, fabs(tx) / 30.);
+      gamerJoystick.SetRumble(frc::GenericHID::kRightRumble, 0.);
+      #if (DO_PRINTF || DO_DIAGNOSTIC)
+        printf("setting left rumble to %f\n", fabs(tx) / 30.);
+      #endif
+    } else if (tx > 0) {
+      gamerJoystick.SetRumble(frc::Joystick::kRightRumble, tx / 30.);
+      gamerJoystick.SetRumble(frc::Joystick::kLeftRumble, 0.);
+      #if (DO_PRINTF || DO_DIAGNOSTIC)
+        printf("setting right rumble to %f\n", tx);
+      #endif    
+    } else {
+      gamerJoystick.SetRumble(frc::Joystick::kRightRumble, 0.);
+      gamerJoystick.SetRumble(frc::Joystick::kLeftRumble,  0.);
+      #if (DO_PRINTF || DO_DIAGNOSTIC)
+        printf("setting both rumble to 0\n");
+      #endif
+    }
+  #endif  
 
   ty -= 2.5; // TODO: stronger?
 
@@ -897,7 +978,7 @@ void Robot::Align(int left, int right, int tolerance, Robot::DistanceType type) 
   }
 }
 
-void Robot::Align(Robot::DistanceType type) {
+void Robot::Align(Robot::DistanceType type, double target) {
   #if DO_DIAGNOSTIC
     if (masterLoopCount % 20 == 0) {
       // printf("in align : type %s\n", distanceTypeNames[type].c_str());
@@ -963,42 +1044,73 @@ void Robot::Align(Robot::DistanceType type) {
       go = linearMap(dif, -700, 700, 0.85, -0.85); //(dif - (900-200) ) / ((200-900) - (900-200) ) * (-0.85 - 0.85) + 0.85;
     #endif
   } else if (type == NAVX) {
-    printf("in navx align\n");
+    #if (DO_PRINTF || DO_DIAGNOSTIC)
+      printf("target: %f\n", target);
+      printf("in navx align\n");
+    #endif
 
-    double deg = ahrs->GetYaw();
-    double speed = 0.65;
-    double alignTol = 4.25;
+    #if NAVX_BANGBANG
+      double deg = ahrs->GetYaw();
+      // deg = ((int)(deg + 180) % 360) - 180;
+      if (173 < deg && deg < 180) {
+        deg = -180 - (180 - deg);
+      }
+      #if DO_DIAGNOSTIC
+        printf("deg: %f", deg);
+      #endif
+      #define speed 0.75
+      #define alignTol 2.2
 
-    int angleScalar;
-    if (gamerJoystick.GetRawButton(1)) {
-      angleScalar = -1;
-    } else {
-      angleScalar = 1;
-    }
+      if (/* -180 < deg && */ deg < target - alignTol) {
+        #if DO_DIAGNOSTIC
+          printf("turning right to %f\n", target);
+        #endif
+        TurnRight(speed);
+      } else if (target + alignTol < deg) {
+        #if DO_DIAGNOSTIC
+          printf("turning left to %f\n", target); 
+        #endif
+        TurnLeft(speed);
+      } else {
+        DriveBoth(0.0);
+        #if DO_DIAGNOSTIC
+          printf("aligned\n");
+        #endif
+      }
+    #else      
+      if (!turnController->IsEnabled()) {
+        turnController->SetSetpoint(target);
+        rotateToAngleRate = 0.;
+        turnController->Enable();
+      }
 
-    double target = angleScalar * alignAngles[alignDestination];
+      printf("rotate to Angle: %f", rotateToAngleRate);
 
-    printf("target: %f", target);
+      TurnLeft(-rotateToAngleRate);
+    #endif
 
-    if (-180 < deg && deg < target - alignTol) {
-      printf("turning right to %f\n", target);
-      TurnRight(speed);
-    } else if (target + alignTol < deg) {
-      printf("turning left to %f\n", target); 
-      TurnLeft(speed);
-    // } 
-    // else if (0 < deg && deg < 85) {
-    //   printf("turning right to +90\n");
-    //   TurnRight(speed);
-    // } else if (95 < deg && deg < 180) {
-    //   printf("turning left to +90\n");
-    //   TurnLeft(speed);
-    } else {
-      DriveBoth(0.0);
-      printf("aligned\n");
-    }
+
+    // constexpr int angleScalar = gamerJoystick.GetRawButton(1) ? -1 : 1;
+    /* scalar for switching side of field
+      int angleScalar;
+      if (gamerJoystick.GetRawButton(1)) {
+        angleScalar = -1;
+      } else {
+        angleScalar = 1;
+      }
+    */
+    /* switching target
+      if (leftJoystick.GetRawButton(5)) {
+        double target = 0.; //alignAngles[CARGO_FACE];
+      } else if (leftJoystick.GetRawButton(3)) {
+        double target = -90.;
+      } else if (leftJoystick.GetRawButton(6)) {
+        double target = 90.;
+      } else if (leftJoystick.GetRawButton(4)) {
+        double target = 179.9;
+      }
+    */
   }
-
 
   SD::PutNumber("dis| go", go);
   SD::PutNumber("dis| dif", dif);
@@ -1009,7 +1121,6 @@ void Robot::Align(Robot::DistanceType type) {
       DriveRight( go);
     }
   }
-
 }
 
 void Robot::LidarInit() {}
@@ -1174,6 +1285,10 @@ void Robot::SetElevatorAtZero() {
   elevator.ConfigSelectedFeedbackSensor(FeedbackDevice::CTRE_MagEncoder_Relative, 0, 0);
   elevator.SetSelectedSensorPosition(0, 0, 10);
   elevatorState = NORMAL;
+}
+ 
+void Robot::SetLimelightLEDs(bool on) {
+  limelight->PutNumber("ledMode", on ? 3 : 1);
 }
 
 #ifndef RUNNING_FRC_TESTS

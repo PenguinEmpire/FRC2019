@@ -34,7 +34,11 @@ using std::unordered_map;
 typedef frc::DigitalInput DIO;
 using SD = frc::SmartDashboard;
 
+#if (!NAVX_BANGBANG)
+class Robot : public frc::TimedRobot, public frc::PIDOutput {
+#else
 class Robot : public frc::TimedRobot {
+#endif
  public:
 
   enum Direction {
@@ -158,7 +162,7 @@ class Robot : public frc::TimedRobot {
         {HATCH_LOW,  10}, 
         {HATCH_MID,   10500}, 
         {HATCH_HIGH,  20000}, 
-        {BALL_LOW,    3900 /*4300*/ }, // actually 4700?. levels at err ~= -150 and seems resistant to lowering when I change this. ??.
+        {BALL_LOW,    3900 /*4300*/ }, // actually 4700? levels at err ~= -150 and seems resistant to lowering when I change this. ??.
         {BALL_MID,    /*14300*/ 14700 - 400}, 
         {BALL_HIGH,   23000}, 
 
@@ -200,6 +204,7 @@ class Robot : public frc::TimedRobot {
 	};
 
   bool driveInverted = false;
+  bool limelightLEDsOn = false;
   int masterLoopCount = 0;
 
   nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
@@ -232,22 +237,22 @@ class Robot : public frc::TimedRobot {
   int absPos;
   int absPos2;
 
-/* deprecated
-  DIO* liftBottom;
-  DIO* liftMid;
-  DIO* liftTop;
-*/
+  /* deprecated
+    DIO* liftBottom;
+    DIO* liftMid;
+    DIO* liftTop;
+  */
   
-/* Line following sensors - experimental
-  DIO* lineSensorLeft;
-  DIO* lineSensorMid;
-  DIO* lineSensorRight;
-  frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
-  frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
-  frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
-  frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
-  frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
-*/
+  /* Line following sensors - experimental
+    DIO* lineSensorLeft;
+    DIO* lineSensorMid;
+    DIO* lineSensorRight;
+    frc::AnalogInput* lineSensorLeft = new frc::AnalogInput(0);
+    frc::AnalogInput* lineSensorMid = new frc::AnalogInput(1);
+    frc::AnalogInput* lineSensor2 = new frc::AnalogInput(2);
+    frc::AnalogInput* lineSensorRight = new frc::AnalogInput(3);
+    frc::AnalogInput* lineSensornavx4 = new frc::AnalogInput(4);
+  */
 
   #if LIDAR_EXIST // create lidar objects
     Lidar* leftLidar = new Lidar(LEFT_LIDAR_PORT);
@@ -287,7 +292,6 @@ class Robot : public frc::TimedRobot {
     }
   } ultraDist, lidarDist, limelightDist;
 
-
   // MOTOR CONTROLLERS
   // Talons
 
@@ -307,11 +311,16 @@ class Robot : public frc::TimedRobot {
   frc::Spark intakeMotor{INTAKE_MOTOR_PWM};
   WPI_TalonSRX elevator{ELEVATOR_MOTOR_CAN_ADDRESS};
 
-  // frc::DifferentialDrive drive{l1, r1};
-
   // OTHER
 
-  AHRS* ahrs = new AHRS(I2C::Port::kMXP);
+  AHRS* ahrs = new AHRS(SPI::Port::kMXP);
+
+  #if (!NAVX_BANGBANG)
+    frc::PIDController* turnController = new frc::PIDController(0.03, 0., 4., 0. /* kP, kI, kD, kF */, ahrs, this);
+    double kToleranceDegrees = 3.5;
+    double rotateToAngleRate = 0.;
+  #endif
+
   frc::Timer* timer = new frc::Timer();
   double now;
   double prev_now;
@@ -350,6 +359,7 @@ class Robot : public frc::TimedRobot {
 
   // frc::PIDController straighten = frc::PIDController();
 
+  // Encoders
   #if COMP_ROBOT
     frc::Encoder leftEnc{2, 3}, rightEnc{0, 1}; // might need to switch. also, TODO - Talon encoders?
   #else
@@ -363,7 +373,7 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override;
-  // void DisabledInit() override;
+  void DisabledInit() override;
   void DisabledPeriodic() override;
 
   void TalonInit();
@@ -377,7 +387,7 @@ class Robot : public frc::TimedRobot {
 
   void GetDistances();
   void Align(int left, int right, int tolerance, Robot::DistanceType type);
-  void Align(Robot::DistanceType type);
+  void Align(Robot::DistanceType type, double target);
   void LidarInit();
   void GetLimelight();
 
@@ -400,11 +410,19 @@ class Robot : public frc::TimedRobot {
   void CalibrateElevator();
   void SetElevatorAtZero();
 
+  void SetLimelightLEDs(bool on);
+
   // Utils:
   double calculateDampenedJoystick(double rawAxisValue);
   double linearMap(double n, double start1, double stop1, double start2, double stop2);
 
   void Testing();  
+
+  #if (!NAVX_BANGBANG)
+    void PIDWrite(double output) override {
+      rotateToAngleRate = output;
+    };
+  #endif
 
  private:
   frc::SendableChooser<std::string> m_chooser;

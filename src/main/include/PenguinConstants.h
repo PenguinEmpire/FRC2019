@@ -52,22 +52,28 @@ constexpr float PULSE_IN = 0.16;
 #define PRACTICE_TALON            true
 #define LIDAR_EXIST               false 
 #define ULTRA_EXIST               false
-#define LIMELIGHT_EXIST           false
+#define LIMELIGHT_EXIST           true
 #define ELEVATOR_SENSOR_EXIST     false
 #define PNEUMATIC_OBJECT          false
 
+// false in comp ones
 #define DO_PRINTF                 false  // false in comp, prob
 #define PROFILING                 false
 #define DO_DIAGNOSTIC             false
 #define DO_EXTRA_IO               false  // also prob false
 #define ALLOW_CALIBRATE_NAVX      false
 
+#define DO_RUMBLE                 false
+
 #define OPEN_LOOP_RAMP            false
-#define LIMELIGHT_APPROACH        false
+#define LIMELIGHT_APPROACH        true
+#define COVER_LAST_DIST_APPROACH  false
+
+#define FANCY_NAVX                true
+#define NAVX_BANGBANG             true
 
 #define WALL_PROTECTION           false // probably don't change
 #define ELEVATOR_DOWN_PROTECTION  true
-#define COVER_LAST_DIST_APPROACH  false
 
 // COMP ROBOT VALUES
 
@@ -113,7 +119,6 @@ constexpr double DRIVE_OPENLOOP_RAMP = 0.5;
 
 constexpr double ELEVATOR_FEEDFORWARD = 0.2;
 constexpr double ELEVATOR_DOWNSPEED = -0.6;
-
 
 /** # where the pneumatics are plugged in
  * driveGearboxes{pcm0, pch0, pch1};
