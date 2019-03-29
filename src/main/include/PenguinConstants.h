@@ -48,7 +48,7 @@ constexpr int can7 = 7;
 
 constexpr float PULSE_IN = 0.16;
 
-#define COMP_ROBOT                false // CHECK!
+#define COMP_ROBOT                true // CHECK!
 #define PRACTICE_TALON            true
 #define LIDAR_EXIST               false 
 #define ULTRA_EXIST               false

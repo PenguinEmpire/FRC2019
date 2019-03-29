@@ -527,7 +527,7 @@ void Robot::HandleJoysticks() {
     #endif
   #else // TODO??
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-    ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), ballPusher);
+    //ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), ballPusher); //needed for practice bot
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
     #if COMP_ROBOT
       ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
