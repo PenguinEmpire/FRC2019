@@ -164,7 +164,7 @@ class Robot : public frc::TimedRobot {
         {HATCH_HIGH,  20000}, 
         {BALL_LOW,    3900 /*4300*/ }, // actually 4700? levels at err ~= -150 and seems resistant to lowering when I change this. ??.
         {BALL_MID,    /*14300*/ 14700 - 400}, 
-        {BALL_HIGH,   23000}, 
+        {BALL_HIGH,   23700}, 
 
         {BALL_CARGO,  9601},
       #else

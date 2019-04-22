@@ -1205,9 +1205,9 @@ void Robot::SetPneumaticDefaultDirections() {
     #if COMP_ROBOT
       // ShiftGears(Direction::down, driveGearboxes); // TODO_COMP: remove?
       driveGearboxes.Set(frc::DoubleSolenoid::kForward);
-      intakeArm.Set(frc::DoubleSolenoid::kReverse);
+      intakeArm.Set(frc::DoubleSolenoid::kForward);
       // ballPusher.Set(frc::DoubleSolenoid::kReverse);
-      hatchPusher.Set(frc::DoubleSolenoid::kForward);
+      hatchPusher.Set(frc::DoubleSolenoid::kReverse );
       jumper.Set(frc::DoubleSolenoid::kForward);
     #else // TODO
       // ShiftGears(Direction::down, driveGearboxes);

@@ -57,10 +57,10 @@ constexpr float PULSE_IN = 0.16;
 #define PNEUMATIC_OBJECT          false
 
 // false in comp ones
-#define DO_PRINTF                 false  // false in comp, prob
+#define DO_PRINTF                 true  // false in comp, prob
 #define PROFILING                 false
-#define DO_DIAGNOSTIC             false
-#define DO_EXTRA_IO               false  // also prob false
+#define DO_DIAGNOSTIC             true
+#define DO_EXTRA_IO               true  // also prob false
 #define ALLOW_CALIBRATE_NAVX      false
 
 #define DO_RUMBLE                 false
