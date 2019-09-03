@@ -164,7 +164,7 @@ class Robot : public frc::TimedRobot {
         {HATCH_HIGH,  20000}, 
         {BALL_LOW,    3900 /*4300*/ }, // actually 4700? levels at err ~= -150 and seems resistant to lowering when I change this. ??.
         {BALL_MID,    /*14300*/ 14700 - 400}, 
-        {BALL_HIGH,   23700}, 
+        {BALL_HIGH,   /*23700*/ 24440}, 
 
         {BALL_CARGO,  9601},
       #else
@@ -336,10 +336,11 @@ class Robot : public frc::TimedRobot {
       Pneumatic jumper{           1,    0,    1, frc::DoubleSolenoid::kForward};
     #else
       frc::DoubleSolenoid driveGearboxes{pcm0, pch0, pch1};
-      frc::DoubleSolenoid intakeArm{     pcm0, pch6, pch7};
-      // frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
+      frc::DoubleSolenoid intakeArm{     1, pch6, pch7};
+      frc::DoubleSolenoid ballPusher{    pcm0, pch2, pch3};
       frc::DoubleSolenoid hatchPusher{   pcm0, pch4, pch5};
       frc::DoubleSolenoid jumper{           1,    0,    1};
+
     #endif
   #else // TODOOO
     #if PNEUMATIC_OBJECT

@@ -527,7 +527,7 @@ void Robot::HandleJoysticks() {
     #endif
   #else // TODO??
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(2), driveGearboxes);
-    //ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), ballPusher); //needed for practice bot
+    ToggleSolenoid(rightJoystick.GetRawButtonPressed(3), ballPusher); //needed for practice bot
     ToggleSolenoid(rightJoystick.GetRawButtonPressed(5), intakeArm);
     #if COMP_ROBOT
       ToggleSolenoid(rightJoystick.GetRawButtonPressed(4), hatchPusher);
@@ -1206,7 +1206,7 @@ void Robot::SetPneumaticDefaultDirections() {
       // ShiftGears(Direction::down, driveGearboxes); // TODO_COMP: remove?
       driveGearboxes.Set(frc::DoubleSolenoid::kForward);
       intakeArm.Set(frc::DoubleSolenoid::kForward);
-      // ballPusher.Set(frc::DoubleSolenoid::kReverse);
+      ballPusher.Set(frc::DoubleSolenoid::kReverse);
       hatchPusher.Set(frc::DoubleSolenoid::kReverse );
       jumper.Set(frc::DoubleSolenoid::kForward);
     #else // TODO
