@@ -467,7 +467,7 @@ void Robot::HandleJoysticks() {
           printf("limelight align/approach not allowed: line %i\n", __LINE__);
         #endif
       #endif
-    } else if (leftJoystick.GetRawButton(6)) {
+    } else if (leftJoystick.GetRawButton(6)) { // align w NAVX
       #if DO_PRINTF
         printf("calling align(navx)\n");
       #endif
